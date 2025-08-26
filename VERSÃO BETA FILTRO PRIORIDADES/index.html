@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>WEBGIS COGER</title>
+
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css"/>
+
+    <link rel="stylesheet" href="https://unpkg.com/leaflet-control-geocoder/dist/Control.Geocoder.css" />
+    <link rel="stylesheet" href="https://unpkg.com/leaflet-streetview/dist/leaflet-streetview.css" />
+
+    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="https://unpkg.com/leaflet-control-google-streetview/dist/L.Control.StreetView.min.css" />
+    <script src="https://unpkg.com/leaflet-control-google-streetview/dist/L.Control.StreetView.min.js"></script>
+
+</head>
+<body>
+    <a href="porta_links.html" class="back-button">⬅️ Voltar</a>
+    <div id="map"></div>
+    
+    <button id="resete-mapa" class="custom-btn"> Mostrar Todos</button>
+
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    
+    <script src="https://unpkg.com/leaflet-control-geocoder/dist/Control.Geocoder.js"></script>
+    <script src="https://unpkg.com/leaflet-streetview/dist/leaflet-streetview.js"></script>
+
+    <script type="module" src="js/main.js"></script>
+
+
+    <div id="priority-filter-container">
+        <div class="filter-header">Filtrar por tipo_prioridade:</div>
+        <div id="priority-list">
+            </div>
+    </div>
+
+
+
+    <div id="aisp-filter-container">
+        <div class="filter-header">Filtrar por AISP:</div>
+        <input type="text" id="aisp-search-input" placeholder="Digite para buscar na lista...">
+        <div id="aisp-list"> </div>
+        <button id="aisp-apply-btn">Aplicar Filtro</button>
+    </div>
+
+
+    <div id="date-filter-container">
+        <label for="start-date">Data de Início:</label>
+        <input type="date" id="start-date">
+        <label for="end-date">Data de Fim:</label>
+        <input type="date" id="end-date">
+        <button id="date-filter-btn">Filtrar Datas</button>
+    </div>
+
+
+
+
+
+    </>
+        <div class="info-legend">
+        <h4>Legenda</h4>
+        <div class="legend-item"><i style="background: #007bff;"></i> Confronto com Agente Envolvido (AE)</div>
+        <div class="legend-item"><i style="background: #28a745;"></i> Confronto sem Agente Envolvido (Sem AE)</div>
+        <div class="legend-item"><i style="background: #dc3545;"></i> Confronto com Óbito (PFO)</div>
+        <div class="legend-item"><i style="background: #6c757d;"></i> Situação com Refém</div>
+        <div class="legend-item"><i style="background: #fd7e14;"></i> Vitimização</div>
+        <div class="legend-item"><i style="background: #ffc107;"></i> Danos Colaterais</div>
+    </div>
+
+</body>
+
+</html>
