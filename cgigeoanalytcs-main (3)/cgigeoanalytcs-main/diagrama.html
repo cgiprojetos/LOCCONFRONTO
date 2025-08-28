@@ -1,0 +1,572 @@
+<html>
+    <head>
+        <meta charset="utf-8">
+        
+            <script>function neighbourhoodHighlight(params) {
+  // console.log("in nieghbourhoodhighlight");
+  allNodes = nodes.get({ returnType: "Object" });
+  // originalNodes = JSON.parse(JSON.stringify(allNodes));
+  // if something is selected:
+  if (params.nodes.length > 0) {
+    highlightActive = true;
+    var i, j;
+    var selectedNode = params.nodes[0];
+    var degrees = 2;
+
+    // mark all nodes as hard to read.
+    for (let nodeId in allNodes) {
+      // nodeColors[nodeId] = allNodes[nodeId].color;
+      allNodes[nodeId].color = "rgba(200,200,200,0.5)";
+      if (allNodes[nodeId].hiddenLabel === undefined) {
+        allNodes[nodeId].hiddenLabel = allNodes[nodeId].label;
+        allNodes[nodeId].label = undefined;
+      }
+    }
+    var connectedNodes = network.getConnectedNodes(selectedNode);
+    var allConnectedNodes = [];
+
+    // get the second degree nodes
+    for (i = 1; i < degrees; i++) {
+      for (j = 0; j < connectedNodes.length; j++) {
+        allConnectedNodes = allConnectedNodes.concat(
+          network.getConnectedNodes(connectedNodes[j])
+        );
+      }
+    }
+
+    // all second degree nodes get a different color and their label back
+    for (i = 0; i < allConnectedNodes.length; i++) {
+      // allNodes[allConnectedNodes[i]].color = "pink";
+      allNodes[allConnectedNodes[i]].color = "rgba(150,150,150,0.75)";
+      if (allNodes[allConnectedNodes[i]].hiddenLabel !== undefined) {
+        allNodes[allConnectedNodes[i]].label =
+          allNodes[allConnectedNodes[i]].hiddenLabel;
+        allNodes[allConnectedNodes[i]].hiddenLabel = undefined;
+      }
+    }
+
+    // all first degree nodes get their own color and their label back
+    for (i = 0; i < connectedNodes.length; i++) {
+      // allNodes[connectedNodes[i]].color = undefined;
+      allNodes[connectedNodes[i]].color = nodeColors[connectedNodes[i]];
+      if (allNodes[connectedNodes[i]].hiddenLabel !== undefined) {
+        allNodes[connectedNodes[i]].label =
+          allNodes[connectedNodes[i]].hiddenLabel;
+        allNodes[connectedNodes[i]].hiddenLabel = undefined;
+      }
+    }
+
+    // the main node gets its own color and its label back.
+    // allNodes[selectedNode].color = undefined;
+    allNodes[selectedNode].color = nodeColors[selectedNode];
+    if (allNodes[selectedNode].hiddenLabel !== undefined) {
+      allNodes[selectedNode].label = allNodes[selectedNode].hiddenLabel;
+      allNodes[selectedNode].hiddenLabel = undefined;
+    }
+  } else if (highlightActive === true) {
+    // console.log("highlightActive was true");
+    // reset all nodes
+    for (let nodeId in allNodes) {
+      // allNodes[nodeId].color = "purple";
+      allNodes[nodeId].color = nodeColors[nodeId];
+      // delete allNodes[nodeId].color;
+      if (allNodes[nodeId].hiddenLabel !== undefined) {
+        allNodes[nodeId].label = allNodes[nodeId].hiddenLabel;
+        allNodes[nodeId].hiddenLabel = undefined;
+      }
+    }
+    highlightActive = false;
+  }
+
+  // transform the object into an array
+  var updateArray = [];
+  if (params.nodes.length > 0) {
+    for (let nodeId in allNodes) {
+      if (allNodes.hasOwnProperty(nodeId)) {
+        // console.log(allNodes[nodeId]);
+        updateArray.push(allNodes[nodeId]);
+      }
+    }
+    nodes.update(updateArray);
+  } else {
+    // console.log("Nothing was selected");
+    for (let nodeId in allNodes) {
+      if (allNodes.hasOwnProperty(nodeId)) {
+        // console.log(allNodes[nodeId]);
+        // allNodes[nodeId].color = {};
+        updateArray.push(allNodes[nodeId]);
+      }
+    }
+    nodes.update(updateArray);
+  }
+}
+
+function filterHighlight(params) {
+  allNodes = nodes.get({ returnType: "Object" });
+  // if something is selected:
+  if (params.nodes.length > 0) {
+    filterActive = true;
+    let selectedNodes = params.nodes;
+
+    // hiding all nodes and saving the label
+    for (let nodeId in allNodes) {
+      allNodes[nodeId].hidden = true;
+      if (allNodes[nodeId].savedLabel === undefined) {
+        allNodes[nodeId].savedLabel = allNodes[nodeId].label;
+        allNodes[nodeId].label = undefined;
+      }
+    }
+
+    for (let i=0; i < selectedNodes.length; i++) {
+      allNodes[selectedNodes[i]].hidden = false;
+      if (allNodes[selectedNodes[i]].savedLabel !== undefined) {
+        allNodes[selectedNodes[i]].label = allNodes[selectedNodes[i]].savedLabel;
+        allNodes[selectedNodes[i]].savedLabel = undefined;
+      }
+    }
+
+  } else if (filterActive === true) {
+    // reset all nodes
+    for (let nodeId in allNodes) {
+      allNodes[nodeId].hidden = false;
+      if (allNodes[nodeId].savedLabel !== undefined) {
+        allNodes[nodeId].label = allNodes[nodeId].savedLabel;
+        allNodes[nodeId].savedLabel = undefined;
+      }
+    }
+    filterActive = false;
+  }
+
+  // transform the object into an array
+  var updateArray = [];
+  if (params.nodes.length > 0) {
+    for (let nodeId in allNodes) {
+      if (allNodes.hasOwnProperty(nodeId)) {
+        updateArray.push(allNodes[nodeId]);
+      }
+    }
+    nodes.update(updateArray);
+  } else {
+    for (let nodeId in allNodes) {
+      if (allNodes.hasOwnProperty(nodeId)) {
+        updateArray.push(allNodes[nodeId]);
+      }
+    }
+    nodes.update(updateArray);
+  }
+}
+
+function selectNode(nodes) {
+  network.selectNodes(nodes);
+  neighbourhoodHighlight({ nodes: nodes });
+  return nodes;
+}
+
+function selectNodes(nodes) {
+  network.selectNodes(nodes);
+  filterHighlight({nodes: nodes});
+  return nodes;
+}
+
+function highlightFilter(filter) {
+  let selectedNodes = []
+  let selectedProp = filter['property']
+  if (filter['item'] === 'node') {
+    let allNodes = nodes.get({ returnType: "Object" });
+    for (let nodeId in allNodes) {
+      if (allNodes[nodeId][selectedProp] && filter['value'].includes((allNodes[nodeId][selectedProp]).toString())) {
+        selectedNodes.push(nodeId)
+      }
+    }
+  }
+  else if (filter['item'] === 'edge'){
+    let allEdges = edges.get({returnType: 'object'});
+    // check if the selected property exists for selected edge and select the nodes connected to the edge
+    for (let edge in allEdges) {
+      if (allEdges[edge][selectedProp] && filter['value'].includes((allEdges[edge][selectedProp]).toString())) {
+        selectedNodes.push(allEdges[edge]['from'])
+        selectedNodes.push(allEdges[edge]['to'])
+      }
+    }
+  }
+  selectNodes(selectedNodes)
+}</script>
+            <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/vis-network/9.1.2/dist/dist/vis-network.min.css" integrity="sha512-WgxfT5LWjfszlPHXRmBWHkV2eceiWTOBvrKCNbdgDYTHrT2AeLCGbF4sZlZw3UMN3WtL0tGUoIAKsu8mllg/XA==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+            <script src="https://cdnjs.cloudflare.com/ajax/libs/vis-network/9.1.2/dist/vis-network.min.js" integrity="sha512-LnvoEWDFrqGHlHmDD2101OrLcbsfkrzoSpvtSQtxK3RMnRV0eOkhhBN2dXHKRrUU8p2DGRTk35n4O8nWSVe1mQ==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+            
+            
+            
+            
+            
+            
+
+        
+<center>
+<h1></h1>
+</center>
+
+<!-- <link rel="stylesheet" href="../node_modules/vis/dist/vis.min.css" type="text/css" />
+<script type="text/javascript" src="../node_modules/vis/dist/vis.js"> </script>-->
+        <link
+          href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.0-beta3/dist/css/bootstrap.min.css"
+          rel="stylesheet"
+          integrity="sha384-eOJMYsd53ii+scO/bJGFsiCZc+5NDVN2yr8+0RDqr0Ql0h+rP48ckxlpbzKgwra6"
+          crossorigin="anonymous"
+        />
+        <script
+          src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.0-beta3/dist/js/bootstrap.bundle.min.js"
+          integrity="sha384-JEW9xMcG8R+pH31jmWH6WWP0WintQrMb4s7ZOdauHnUtxwoG2vI5DkLtS3qm9Ekf"
+          crossorigin="anonymous"
+        ></script>
+
+
+        <center>
+          <h1></h1>
+        </center>
+        <style type="text/css">
+
+             #mynetwork {
+                 width: 100%;
+                 height: 750px;
+                 background-color: #FFFFFF;
+                 border: 1px solid lightgray;
+                 position: relative;
+                 float: left;
+             }
+
+             
+             #loadingBar {
+                 position:absolute;
+                 top:0px;
+                 left:0px;
+                 width: 100%;
+                 height: 750px;
+                 background-color:rgba(200,200,200,0.8);
+                 -webkit-transition: all 0.5s ease;
+                 -moz-transition: all 0.5s ease;
+                 -ms-transition: all 0.5s ease;
+                 -o-transition: all 0.5s ease;
+                 transition: all 0.5s ease;
+                 opacity:1;
+             }
+
+             #bar {
+                 position:absolute;
+                 top:0px;
+                 left:0px;
+                 width:20px;
+                 height:20px;
+                 margin:auto auto auto auto;
+                 border-radius:11px;
+                 border:2px solid rgba(30,30,30,0.05);
+                 background: rgb(0, 173, 246); /* Old browsers */
+                 box-shadow: 2px 0px 4px rgba(0,0,0,0.4);
+             }
+
+             #border {
+                 position:absolute;
+                 top:10px;
+                 left:10px;
+                 width:500px;
+                 height:23px;
+                 margin:auto auto auto auto;
+                 box-shadow: 0px 0px 4px rgba(0,0,0,0.2);
+                 border-radius:10px;
+             }
+
+             #text {
+                 position:absolute;
+                 top:8px;
+                 left:530px;
+                 width:30px;
+                 height:50px;
+                 margin:auto auto auto auto;
+                 font-size:22px;
+                 color: #000000;
+             }
+
+             div.outerBorder {
+                 position:relative;
+                 top:400px;
+                 width:600px;
+                 height:44px;
+                 margin:auto auto auto auto;
+                 border:8px solid rgba(0,0,0,0.1);
+                 background: rgb(252,252,252); /* Old browsers */
+                 background: -moz-linear-gradient(top,  rgba(252,252,252,1) 0%, rgba(237,237,237,1) 100%); /* FF3.6+ */
+                 background: -webkit-gradient(linear, left top, left bottom, color-stop(0%,rgba(252,252,252,1)), color-stop(100%,rgba(237,237,237,1))); /* Chrome,Safari4+ */
+                 background: -webkit-linear-gradient(top,  rgba(252,252,252,1) 0%,rgba(237,237,237,1) 100%); /* Chrome10+,Safari5.1+ */
+                 background: -o-linear-gradient(top,  rgba(252,252,252,1) 0%,rgba(237,237,237,1) 100%); /* Opera 11.10+ */
+                 background: -ms-linear-gradient(top,  rgba(252,252,252,1) 0%,rgba(237,237,237,1) 100%); /* IE10+ */
+                 background: linear-gradient(to bottom,  rgba(252,252,252,1) 0%,rgba(237,237,237,1) 100%); /* W3C */
+                 filter: progid:DXImageTransform.Microsoft.gradient( startColorstr='#fcfcfc', endColorstr='#ededed',GradientType=0 ); /* IE6-9 */
+                 border-radius:72px;
+                 box-shadow: 0px 0px 10px rgba(0,0,0,0.2);
+             }
+             
+
+             
+             #config {
+                 float: left;
+                 width: 400px;
+                 height: 600px;
+             }
+             
+
+             
+        </style>
+    </head>
+
+
+    <body>
+        <div class="card" style="width: 100%">
+            
+            
+            <div id="mynetwork" class="card-body"></div>
+        </div>
+
+        
+            <div id="loadingBar">
+              <div class="outerBorder">
+                <div id="text">0%</div>
+                <div id="border">
+                  <div id="bar"></div>
+                </div>
+              </div>
+            </div>
+        
+        
+            <div id="config"></div>
+        
+
+        <script type="text/javascript">
+
+              // initialize global variables.
+              var edges;
+              var nodes;
+              var allNodes;
+              var allEdges;
+              var nodeColors;
+              var originalNodes;
+              var network;
+              var container;
+              var options, data;
+              var filter = {
+                  item : '',
+                  property : '',
+                  value : []
+              };
+
+              
+
+              
+
+              // This method is responsible for drawing the graph, returns the drawn network
+              function drawGraph() {
+                  var container = document.getElementById('mynetwork');
+
+                  
+
+                  // parsing and collecting nodes and edges from the python
+                  // Localize esta linha no seu código e substitua todo o bloco a seguir:
+                  nodes = new vis.DataSet([
+                      // --- NÓS VERMELHOS MODIFICADOS COM A IMAGEM ---
+                      { "font": {"color": "black"}, "id": "EDSON DA CRUZ SANTANA", "label": "EDSON DA CRUZ SANTANA", "shape": "image", "image": "imagens/policia.png", "size": 40, "title": "EDSON DA CRUZ SANTANA"},
+                      { "font": {"color": "black"}, "id": "EDSON DE JESUS SANTOS", "label": "EDSON DE JESUS SANTOS", "shape": "image", "image": "imagens/policia.png", "size": 40, "title": "EDSON DE JESUS SANTOS"},
+                      { "font": {"color": "black"}, "id": "ERIC SATIRO VITORIO", "label": "ERIC SATIRO VITORIO", "shape": "image", "image": "imagens/policia.png", "size": 40, "title": "ERIC SATIRO VITORIO"},
+                      { "font": {"color": "black"}, "id": "SERGIO DE QUEIROZ DE CRUZ JUNIOR", "label": "SERGIO DE QUEIROZ DE CRUZ JUNIOR", "shape": "image", "image": "imagens/policia.png", "size": 40, "title": "SERGIO DE QUEIROZ DE CRUZ JUNIOR"},
+                      { "font": {"color": "black"}, "id": "GERMANO DA PURIFICACAO ASSIS JUNIOR", "label": "GERMANO DA PURIFICACAO ASSIS JUNIOR", "shape": "image", "image": "imagens/policia.png", "size": 40, "title": "GERMANO DA PURIFICACAO ASSIS JUNIOR"},
+
+                     
+                      { "color": "blue", "font": {"color": "black"}, "id": "00043457/2024", "label": "00043457/2024", "shape":"image",    "image": "imagens/bo.png","size": 25, "title": "BO: 00043457/2024"},
+                      { "color": "black", "font": {"color": "black"}, "id": "DANIEL SOUZA ARAUJO", "label": "DANIEL SOUZA ARAUJO", "shape": "image", "image": "imagens/pessoa.png", "size": 25, "title": "PFO: DANIEL SOUZA ARAUJO"},
+                      { "color": "black", "font": {"color": "black"}, "id": "MAICK SANTANA SILVA", "label": "MAICK SANTANA SILVA",  "shape": "image", "image": "imagens/pessoa.png", "size": 25, "title": "PFO: MAICK SANTANA SILVA"},
+                      { "color": "blue", "font": {"color": "black"}, "id": "00046463/2024", "label": "00046463/2024", "shape":"image",    "image": "imagens/bo.png","size": 25, "title": "BO: 00046463/2024"},
+                      { "color": "black", "font": {"color": "black"}, "id": "IDENTIDADE IGNORADA", "label": "IDENTIDADE IGNORADA",  "shape": "image", "image": "imagens/pessoa.png", "size": 25, "title": "PFO: IDENTIDADE IGNORADA"},
+                      { "color": "orange", "font": {"color": "black"}, "id": "CELLYANNE CERQUEIRA SANTOS", "label": "CELLYANNE CERQUEIRA SANTOS", "shape": "image", "image": "imagens/policia3.png", "size": 30, "title": "CELLYANNE CERQUEIRA SANTOS"},
+                      { "color": "blue", "font": {"color": "black"}, "id": "00077459/2024", "label": "00077459/2024", "shape":"image",    "image": "imagens/bo.png","size": 25, "title": "BO: 00077459/2024"},
+                      { "color": "black", "font": {"color": "black"}, "id": "JEFFERSON DOS SANTOS SILVA", "label": "JEFFERSON DOS SANTOS SILVA",  "shape": "image", "image": "imagens/pessoa.png", "size": 25, "title": "PFO: JEFFERSON DOS SANTOS SILVA"},
+                      { "color": "black", "font": {"color": "black"}, "id": "MILTON GUERRA SACRAMENTO", "label": "MILTON GUERRA SACRAMENTO",  "shape": "image", "image": "imagens/pessoa.png", "size": 25, "title": "PFO: MILTON GUERRA SACRAMENTO"},
+                      { "color": "blue", "font": {"color": "black"}, "id": "00081452/2024", "label": "00081452/2024", "shape":"image",    "image": "imagens/bo.png","size": 25, "title": "BO: 00081452/2024"},
+                      { "color": "black", "font": {"color": "black"}, "id": "CARLOS ANTONIO CAYRES NETO", "label": "CARLOS ANTONIO CAYRES NETO",  "shape": "image", "image": "imagens/pessoa.png", "size": 25, "title": "PFO: CARLOS ANTONIO CAYRES NETO"},
+                      { "color": "blue", "font": {"color": "black"}, "id": "00086593/2024", "label": "00086593/2024", "shape":"image",    "image": "imagens/bo.png","size": 25, "title": "BO: 00086593/2024"},
+                      { "color": "blue", "font": {"color": "black"}, "id": "00089640/2024", "label": "00089640/2024", "shape":"image",    "image": "imagens/bo.png","size": 25, "title": "BO: 00089640/2024"},
+                      { "color": "black", "font": {"color": "black"}, "id": "MATHEUS BORGES DOS SANTOS", "label": "MATHEUS BORGES DOS SANTOS",  "shape": "image", "image": "imagens/pessoa.png", "size": 25, "title": "PFO: MATHEUS BORGES DOS SANTOS"},
+                      { "color": "orange", "font": {"color": "black"}, "id": "ANDRE LUIZ DE SOUZA CARVALHO", "label": "ANDRE LUIZ DE SOUZA CARVALHO", "shape": "image", "image": "imagens/policia3.png", "size": 30, "title": "ANDRE LUIZ DE SOUZA CARVALHO"},
+                      { "color": "blue", "font": {"color": "black"}, "id": "00150201/2024", "label": "00150201/2024","shape":"image",    "image": "imagens/bo.png","size": 25, "title": "BO: 00150201/2024"},
+                      { "color": "black", "font": {"color": "black"}, "id": "CARLOS EDUARDO PEREIRA DOS SANTOS", "label": "CARLOS EDUARDO PEREIRA DOS SANTOS",  "shape": "image", "image": "imagens/pessoa.png", "size": 25, "title": "PFO: CARLOS EDUARDO PEREIRA DOS SANTOS"},
+                      { "color": "orange", "font": {"color": "black"}, "id": "BENEVALDO PEREIRA DE SOUSA", "label": "BENEVALDO PEREIRA DE SOUSA",  "shape": "image", "image": "imagens/policia3.png", "size": 30, "title": "BENEVALDO PEREIRA DE SOUSA"},
+                      { "color": "orange", "font": {"color": "black"}, "id": "MIGUEL CORREA LIMA", "label": "MIGUEL CORREA LIMA", "shape": "image", "image": "imagens/policia3.png", "size": 30, "title": "MIGUEL CORREA LIMA"},
+                      { "color": "orange", "font": {"color": "black"}, "id": "OSVALDO EPIFANIO SILVA JUNIOR", "label": "OSVALDO EPIFANIO SILVA JUNIOR",  "shape": "image", "image": "imagens/policia3.png", "size": 30, "title": "OSVALDO EPIFANIO SILVA JUNIOR"},
+                      { "color": "black", "font": {"color": "black"}, "id": "MARCOS ANTONIO DOS SANTOS ARAUJO", "label": "MARCOS ANTONIO DOS SANTOS ARAUJO",  "shape": "image", "image": "imagens/pessoa.png", "size": 25, "title": "PFO: MARCOS ANTONIO DOS SANTOS ARAUJO"},
+                      { "color": "black", "font": {"color": "black"}, "id": "NADSON DE JESUS SANTOS", "label": "NADSON DE JESUS SANTOS",  "shape": "image", "image": "imagens/pessoa.png", "size": 25, "title": "PFO: NADSON DE JESUS SANTOS"},
+                      { "color": "blue", "font": {"color": "black"}, "id": "00337447/2024", "label": "00337447/2024", "shape":"image",    "image": "imagens/bo.png","size": 25, "title": "BO: 00337447/2024"},
+                      { "color": "black", "font": {"color": "black"}, "id": "SIDNEY DOS SANTOS BARBOSA", "label": "SIDNEY DOS SANTOS BARBOSA",  "shape": "image", "image": "imagens/pessoa.png", "size": 25, "title": "PFO: SIDNEY DOS SANTOS BARBOSA"},
+                      { "color": "orange", "font": {"color": "black"}, "id": "THALES RODRIGO DOS SANTOS SILVA", "label": "THALES RODRIGO DOS SANTOS SILVA", "shape": "image", "image": "imagens/policia3.png", "size": 30, "title": "THALES RODRIGO DOS SANTOS SILVA"},
+                      { "color": "blue", "font": {"color": "black"}, "id": "00561371/2024", "label": "00561371/2024", "shape":"image",    "image": "imagens/bo.png","size": 25, "title": "BO: 00561371/2024"},
+                      { "color": "black", "font": {"color": "black"}, "id": "JOSE MILTON DOS SANTOS JUNIOR", "label": "JOSE MILTON DOS SANTOS JUNIOR",  "shape": "image", "image": "imagens/pessoa.png", "size": 25, "title": "PFO: JOSE MILTON DOS SANTOS JUNIOR"},
+                      { "color": "orange", "font": {"color": "black"}, "id": "WENDELL VERENISIO GONZAGA FIGUEIREDO SANTOS", "label": "WENDELL VERENISIO GONZAGA FIGUEIREDO SANTOS", "shape": "image", "image": "imagens/policia3.png", "size": 30, "title": "WENDELL VERENISIO GONZAGA FIGUEIREDO SANTOS"},
+                      { "color": "blue", "font": {"color": "black"}, "id": "00599591/2024", "label": "00599591/2024","shape":"image",    "image": "imagens/bo.png","size": 25, "title": "BO: 00599591/2024"},
+                      { "color": "black", "font": {"color": "black"}, "id": "MARCELO FERREIRA SANTOS", "label": "MARCELO FERREIRA SANTOS",  "shape": "image", "image": "imagens/pessoa.png", "size": 25, "title": "PFO: MARCELO FERREIRA SANTOS"},
+                      { "color": "orange", "font": {"color": "black"}, "id": "CLAUDEMIRO DOS SANTOS OLIVEIRA", "label": "CLAUDEMIRO DOS SANTOS OLIVEIRA", "shape": "image", "image": "imagens/policia3.png", "size": 30, "title": "CLAUDEMIRO DOS SANTOS OLIVEIRA"},
+                      { "color": "orange", "font": {"color": "black"}, "id": "ADRIANO DA CONCEICAO MATOS", "label": "ADRIANO DA CONCEICAO MATOS", "shape": "image", "image": "imagens/policia3.png", "size": 30, "title": "ADRIANO DA CONCEICAO MATOS"},
+                      { "color": "blue", "font": {"color": "black"}, "id": "00605501/2024", "label": "00605501/2024","shape":"image",    "image": "imagens/bo.png","size": 25, "title": "BO: 00605501/2024"},
+                      { "color": "black", "font": {"color": "black"}, "id": "DELMIRO ALVES DA SILVA FILHO", "label": "DELMIRO ALVES DA SILVA FILHO",  "shape": "image", "image": "imagens/pessoa.png", "size": 25, "title": "PFO: DELMIRO ALVES DA SILVA FILHO"},
+                      { "color": "orange", "font": {"color": "black"}, "id": "JOSE ALVES DO NASCIMENTO NETO", "label": "JOSE ALVES DO NASCIMENTO NETO", "shape": "image", "image": "imagens/policia3.png", "size": 30, "title": "JOSE ALVES DO NASCIMENTO NETO"},
+                      { "color": "orange", "font": {"color": "black"}, "id": "VICTOR ROLEMBERG NUNES SANTOS", "label": "VICTOR ROLEMBERG NUNES SANTOS", "shape": "image", "image": "imagens/policia3.png", "size": 30, "title": "VICTOR ROLEMBERG NUNES SANTOS"},
+                      { "color": "black", "font": {"color": "black"}, "id": "LUCAS VIANA DOREA DOS SANTOS", "label": "LUCAS VIANA DOREA DOS SANTOS",  "shape": "image", "image": "imagens/pessoa.png", "size": 25, "title": "PFO: LUCAS VIANA DOREA DOS SANTOS"},
+                      { "color": "blue", "font": {"color": "black"}, "id": "00645826/2024", "label": "00645826/2024","shape":"image",    "image": "imagens/bo.png","size": 25, "title": "BO: 00645826/2024"},
+                      { "color": "black", "font": {"color": "black"}, "id": "RIAN DOS SANTOS FREITAS", "label": "RIAN DOS SANTOS FREITAS",  "shape": "image", "image": "imagens/pessoa.png", "size": 25, "title": "PFO: RIAN DOS SANTOS FREITAS"},
+                      { "color": "orange", "font": {"color": "black"}, "id": "SERGIO DE QUEIROZ DE CRUZ JUNIO", "label": "SERGIO DE QUEIROZ DE CRUZ JUNIO", "shape": "image", "image": "imagens/policia3.png", "size": 30, "title": "SERGIO DE QUEIROZ DE CRUZ JUNIO"},
+                      { "color": "blue", "font": {"color": "black"}, "id": "00682068/2024", "label": "00682068/2024", "shape":"image",    "image": "imagens/bo.png","size": 25, "title": "BO: 00682068/2024"},
+                      { "color": "black", "font": {"color": "black"}, "id": "BENIVALDO DE SOUZA SANTOS", "label": "BENIVALDO DE SOUZA SANTOS",  "shape": "image", "image": "imagens/pessoa.png", "size": 25, "title": "PFO: BENIVALDO DE SOUZA SANTOS"},
+                      { "color": "blue", "font": {"color": "black"}, "id": "00223488/2024", "label": "00223488/2024", "shape":"image",    "image": "imagens/bo.png","size": 25, "title": "BO: 00223488/2024"},
+                      { "color": "black", "font": {"color": "black"}, "id": "JULIANDERSON SANTOS TEIXEIRA", "label": "JULIANDERSON SANTOS TEIXEIRA",  "shape": "image", "image": "imagens/pessoa.png", "size": 25, "title": "PFO: JULIANDERSON SANTOS TEIXEIRA"},
+                      { "color": "blue", "font": {"color": "black"}, "id": "00231706/2024", "label": "00231706/2024","shape":"image",    "image": "imagens/bo.png","size": 25, "title": "BO: 00231706/2024"},
+                      { "color": "black", "font": {"color": "black"}, "id": "RAFAEL DE JESUS SANTOS", "label": "RAFAEL DE JESUS SANTOS",  "shape": "image", "image": "imagens/pessoa.png", "size": 25, "title": "PFO: RAFAEL DE JESUS SANTOS"},
+                      { "color": "orange", "font": {"color": "black"}, "id": "AUREO OLIVEIRA RIOS NETO", "label": "AUREO OLIVEIRA RIOS NETO", "shape": "image", "image": "imagens/policia3.png", "size": 30, "title": "AUREO OLIVEIRA RIOS NETO"},
+                      { "color": "orange", "font": {"color": "black"}, "id": "ANDRE GUSTAVO DOS SANTOS", "label": "ANDRE GUSTAVO DOS SANTOS", "shape": "image", "image": "imagens/policia3.png", "size": 30, "title": "ANDRE GUSTAVO DOS SANTOS"},
+                      { "color": "blue", "font": {"color": "black"}, "id": "00718481/2024", "label": "00718481/2024","shape":"image",    "image": "imagens/bo.png","size": 25, "title": "BO: 00718481/2024"},
+                      { "color": "black", "font": {"color": "black"}, "id": "ARLAN DOS SANTOS MOTA", "label": "ARLAN DOS SANTOS MOTA",  "shape": "image", "image": "imagens/pessoa.png", "size": 25, "title": "PFO: ARLAN DOS SANTOS MOTA"},
+                      { "color": "orange", "font": {"color": "black"}, "id": "ANDRE RICARDO BORGES BOAVENTURA", "label": "ANDRE RICARDO BORGES BOAVENTURA", "shape": "image", "image": "imagens/policia3.png", "size": 30, "title": "ANDRE RICARDO BORGES BOAVENTURA"},
+                      { "color": "orange", "font": {"color": "black"}, "id": "BRUNO JOSE MELO SOUZA", "label": "BRUNO JOSE MELO SOUZA", "shape": "image", "image": "imagens/policia3.png", "size": 30, "title": "BRUNO JOSE MELO SOUZA"},
+                      { "color": "orange", "font": {"color": "black"}, "id": "DAVI RIOS SOUSA", "label": "DAVI RIOS SOUSA", "shape": "image", "image": "imagens/policia3.png", "size": 30, "title": "DAVI RIOS SOUSA"},
+                      { "color": "orange", "font": {"color": "black"}, "id": "ITALO GUILHERME SANTOS MAGALHAES", "label": "ITALO GUILHERME SANTOS MAGALHAES", "shape": "image", "image": "imagens/policia3.png", "size": 30, "title": "ITALO GUILHERME SANTOS MAGALHAES"},
+                      { "color": "orange", "font": {"color": "black"}, "id": "IVO RIBEIRO BORGES SAMPAIO", "label": "IVO RIBEIRO BORGES SAMPAIO", "shape": "image", "image": "imagens/policia3.png", "size": 30, "title": "IVO RIBEIRO BORGES SAMPAIO"},
+                      { "color": "orange", "font": {"color": "black"}, "id": "LEANDRO BORGES DE SENA", "label": "LEANDRO BORGES DE SENA", "shape": "image", "image": "imagens/policia3.png", "size": 30, "title": "LEANDRO BORGES DE SENA"},
+                      { "color": "orange", "font": {"color": "black"}, "id": "NESTOR MACIEL FIGUEIREDO", "label": "NESTOR MACIEL FIGUEIREDO", "shape": "image", "image": "imagens/policia3.png", "size": 30, "title": "NESTOR MACIEL FIGUEIREDO"},
+                      { "color": "orange", "font": {"color": "black"}, "id": "RICARDO SANTOS GONCALVES", "label": "RICARDO SANTOS GONCALVES", "shape": "image", "image": "imagens/policia3.png", "size": 30, "title": "RICARDO SANTOS GONCALVES"},
+                      { "color": "orange", "font": {"color": "black"}, "id": "ROBERT FELIX DE SANTANA", "label": "ROBERT FELIX DE SANTANA", "shape": "image", "image": "imagens/policia3.png", "size": 30, "title": "ROBERT FELIX DE SANTANA"},
+                      { "color": "orange", "font": {"color": "black"}, "id": "SAMUEL CORREIA OLIVEIRA", "label": "SAMUEL CORREIA OLIVEIRA", "shape": "image", "image": "imagens/policia3.png", "size": 30, "title": "SAMUEL CORREIA OLIVEIRA"},
+                      { "color": "orange", "font": {"color": "black"}, "id": "THIAGO VENAS CARLOS", "label": "THIAGO VENAS CARLOS", "shape": "image", "image": "imagens/policia3.png", "size": 30, "title": "THIAGO VENAS CARLOS"},
+                      { "color": "black", "font": {"color": "black"}, "id": "CAUAN CARVALHO DA SILVA", "label": "CAUAN CARVALHO DA SILVA",  "shape": "image", "image": "imagens/pessoa.png", "size": 25, "title": "PFO: CAUAN CARVALHO DA SILVA"},
+                      { "color": "black", "font": {"color": "black"}, "id": "MESSIAS DOS SANTOS MOTA", "label": "MESSIAS DOS SANTOS MOTA",  "shape": "image", "image": "imagens/pessoa.png", "size": 25, "title": "PFO: MESSIAS DOS SANTOS MOTA"},
+                      { "color": "black", "font": {"color": "black"}, "id": "RAI VICTOR DOS SANTOS COUTINHO COSTA", "label": "RAI VICTOR DOS SANTOS COUTINHO COSTA",  "shape": "image", "image": "imagens/pessoa.png", "size": 25, "title": "PFO: RAI VICTOR DOS SANTOS COUTINHO COSTA"},
+                      { "color": "orange", "font": {"color": "black"}, "id": "EDSON VALMIR FRANCA SANTOS", "label": "EDSON VALMIR FRANCA SANTOS", "shape": "image", "image": "imagens/policia3.png", "size": 30, "title": "EDSON VALMIR FRANCA SANTOS"},
+                      { "color": "blue", "font": {"color": "black"}, "id": "00020604/2024", "label": "00020604/2024", "shape":"image",    "image": "imagens/bo.png","size": 25, "title": "BO: 00020604/2024"},
+                      { "color": "black", "font": {"color": "black"}, "id": "ROBERT REIS DE SOUZA", "label": "ROBERT REIS DE SOUZA",  "shape": "image", "image": "imagens/pessoa.png", "size": 25, "title": "PFO: ROBERT REIS DE SOUZA"},
+                      { "color": "orange", "font": {"color": "black"}, "id": "ERONILSON DA MOTA ALVES", "label": "ERONILSON DA MOTA ALVES", "shape": "image", "image": "imagens/policia3.png", "size": 30, "title": "ERONILSON DA MOTA ALVES"},
+                      { "color": "orange", "font": {"color": "black"}, "id": "GABRIEL PATRIOTA DE CASTRO", "label": "GABRIEL PATRIOTA DE CASTRO", "shape": "image", "image": "imagens/policia3.png", "size": 30, "title": "GABRIEL PATRIOTA DE CASTRO"},
+                      { "color": "orange", "font": {"color": "black"}, "id": "LEVI DA MOTA SANTOS", "label": "LEVI DA MOTA SANTOS", "shape": "image", "image": "imagens/policia3.png", "size": 30, "title": "LEVI DA MOTA SANTOS"},
+                      { "color": "orange", "font": {"color": "black"}, "id": "PEDRO HENRIQUE DE OLIVEIRA SANTOS", "label": "PEDRO HENRIQUE DE OLIVEIRA SANTOS", "shape": "image", "image": "imagens/policia3.png", "size": 30, "title": "PEDRO HENRIQUE DE OLIVEIRA SANTOS"},
+                      { "color": "orange", "font": {"color": "black"}, "id": "REMERSON SENA SILVA", "label": "REMERSON SENA SILVA", "shape": "image", "image": "imagens/policia3.png", "size": 30, "title": "REMERSON SENA SILVA"},
+                      { "color": "orange", "font": {"color": "black"}, "id": "VINICIUS GONCALVES NASCIMENTO", "label": "VINICIUS GONCALVES NASCIMENTO", "shape": "image", "image": "imagens/policia3.png", "size": 30, "title": "VINICIUS GONCALVES NASCIMENTO"},
+                      { "color": "blue", "font": {"color": "black"}, "id": "00055017/2024", "label": "00055017/2024","shape":"image",    "image": "imagens/bo.png","size": 25, "title": "BO: 00055017/2024"},
+                      { "color": "black", "font": {"color": "black"}, "id": "RAFAEL GONCALVES DA CUNHA", "label": "RAFAEL GONCALVES DA CUNHA",  "shape": "image", "image": "imagens/pessoa.png", "size": 25, "title": "PFO: RAFAEL GONCALVES DA CUNHA"},
+                      { "color": "orange", "font": {"color": "black"}, "id": "ANDERSON LUIZ SAMPAIO DA SILVA", "label": "ANDERSON LUIZ SAMPAIO DA SILVA", "shape": "image", "image": "imagens/policia3.png", "size": 30, "title": "ANDERSON LUIZ SAMPAIO DA SILVA"},
+                      { "color": "blue", "font": {"color": "black"}, "id": "00077461/2024", "label": "00077461/2024","shape":"image",    "image": "imagens/bo.png","size": 25, "title": "BO: 00077461/2024"},
+                      { "color": "black", "font": {"color": "black"}, "id": "JONATAS MENEZES BARRETO DOS SANTOS", "label": "JONATAS MENEZES BARRETO DOS SANTOS",  "shape": "image", "image": "imagens/pessoa.png", "size": 25, "title": "PFO: JONATAS MENEZES BARRETO DOS SANTOS"},
+                      { "color": "orange", "font": {"color": "black"}, "id": "DEMOSTHENES LUIZ MALANDRA PEREIRA", "label": "DEMOSTHENES LUIZ MALANDRA PEREIRA", "shape": "image", "image": "imagens/policia3.png", "size": 30, "title": "DEMOSTHENES LUIZ MALANDRA PEREIRA"},
+                      { "color": "orange", "font": {"color": "black"}, "id": "JOBSON SOUZA CORTES", "label": "JOBSON SOUZA CORTES", "shape": "image", "image": "imagens/policia3.png", "size": 30, "title": "JOBSON SOUZA CORTES"},
+                      { "color": "blue", "font": {"color": "black"}, "id": "00418775/2024", "label": "00418775/2024","shape":"image",    "image": "imagens/bo.png","size": 25, "title": "BO: 00418775/2024"},
+                      { "color": "black", "font": {"color": "black"}, "id": "VINICIUS FERNANDES DA COSTA", "label": "VINICIUS FERNANDES DA COSTA",  "shape": "image", "image": "imagens/pessoa.png", "size": 25, "title": "PFO: VINICIUS FERNANDES DA COSTA"},
+                      { "color": "orange", "font": {"color": "black"}, "id": "LAURO VIEIRA NASCIMENTO", "label": "LAURO VIEIRA NASCIMENTO", "shape": "image", "image": "imagens/policia3.png", "size": 30, "title": "LAURO VIEIRA NASCIMENTO"},
+                      { "color": "orange", "font": {"color": "black"}, "id": "MARCUS DEMETRIUS SANTOS FERREIRA", "label": "MARCUS DEMETRIUS SANTOS FERREIRA", "shape": "image", "image": "imagens/policia3.png", "size": 30, "title": "MARCUS DEMETRIUS SANTOS FERREIRA"},
+                      { "color": "orange", "font": {"color": "black"}, "id": "ABIMAEL RODRIGUES LIMA", "label": "ABIMAEL RODRIGUES LIMA", "shape": "image", "image": "imagens/policia3.png", "size": 30, "title": "ABIMAEL RODRIGUES LIMA"},
+                      { "color": "blue", "font": {"color": "black"}, "id": "00489239/2024", "label": "00489239/2024","shape":"image",    "image": "imagens/bo.png","size": 25, "title": "BO: 00489239/2024"},
+                      { "color": "black", "font": {"color": "black"}, "id": "JEREMIAS SANTOS SANTOS", "label": "JEREMIAS SANTOS SANTOS",  "shape": "image", "image": "imagens/pessoa.png", "size": 25, "title": "PFO: JEREMIAS SANTOS SANTOS"},
+                      { "color": "orange", "font": {"color": "black"}, "id": "RODRIGO SILVA SANTOS", "label": "RODRIGO SILVA SANTOS", "shape": "image", "image": "imagens/policia3.png", "size": 30, "title": "RODRIGO SILVA SANTOS"},
+                      { "color": "orange", "font": {"color": "black"}, "id": "DENIS UINDSON MOURA DA SILVA", "label": "DENIS UINDSON MOURA DA SILVA", "shape": "image", "image": "imagens/policia3.png", "size": 30, "title": "DENIS UINDSON MOURA DA SILVA"},
+                      { "color": "blue", "font": {"color": "black"}, "id": "00533288/2024", "label": "00533288/2024","shape":"image",    "image": "imagens/bo.png","size": 25, "title": "BO: 00533288/2024"},
+                      { "color": "black", "font": {"color": "black"}, "id": "LUIZ FERNANDO DOS REIS", "label": "LUIZ FERNANDO DOS REIS",  "shape": "image", "image": "imagens/pessoa.png", "size": 25, "title": "PFO: LUIZ FERNANDO DOS REIS"},
+                      { "color": "orange", "font": {"color": "black"}, "id": "JAILSON FLORENCIO DA SILVA", "label": "JAILSON FLORENCIO DA SILVA", "shape": "image", "image": "imagens/policia3.png", "size": 30, "title": "JAILSON FLORENCIO DA SILVA"},
+                      { "color": "orange", "font": {"color": "black"}, "id": "MARCUS VINICIUS SODRE VIEIRA DA SILVA", "label": "MARCUS VINICIUS SODRE VIEIRA DA SILVA", "shape": "image", "image": "imagens/policia3.png", "size": 30, "title": "MARCUS VINICIUS SODRE VIEIRA DA SILVA"},
+                      { "color": "orange", "font": {"color": "black"}, "id": "MURILO PAULO SANTOS BATISTA", "label": "MURILO PAULO SANTOS BATISTA", "shape": "image", "image": "imagens/policia3.png", "size": 30, "title": "MURILO PAULO SANTOS BATISTA"},
+                      { "color": "orange", "font": {"color": "black"}, "id": "RICARDO SILVA DA CONCEICAO", "label": "RICARDO SILVA DA CONCEICAO", "shape": "image", "image": "imagens/policia3.png", "size": 30, "title": "RICARDO SILVA DA CONCEICAO"},
+                      { "color": "black", "font": {"color": "black"}, "id": "RAFEL DOS SANTOS OLIVEIRA", "label": "RAFEL DOS SANTOS OLIVEIRA",  "shape": "image", "image": "imagens/pessoa.png", "size": 25, "title": "PFO: RAFEL DOS SANTOS OLIVEIRA"}
+                  ]);
+                  edges = new vis.DataSet([{"arrows": "", "color": "black", "from": "EDSON DA CRUZ SANTANA", "label": "", "title": "EDSON DA CRUZ SANTANA -\u003e 00043457/2024 (via BO)", "to": "00043457/2024"}, {"arrows": "", "color": "black", "from": "EDSON DA CRUZ SANTANA", "label": "", "title": "EDSON DA CRUZ SANTANA -\u003e 00046463/2024 (via BO)", "to": "00046463/2024"}, {"arrows": "", "color": "black", "from": "EDSON DA CRUZ SANTANA", "label": "", "title": "EDSON DA CRUZ SANTANA -\u003e 00077459/2024 (via BO)", "to": "00077459/2024"}, {"arrows": "", "color": "black", "from": "EDSON DA CRUZ SANTANA", "label": "", "title": "EDSON DA CRUZ SANTANA -\u003e 00081452/2024 (via BO)", "to": "00081452/2024"}, {"arrows": "", "color": "black", "from": "EDSON DA CRUZ SANTANA", "label": "", "title": "EDSON DA CRUZ SANTANA -\u003e 00086593/2024 (via BO)", "to": "00086593/2024"}, {"arrows": "", "color": "black", "from": "EDSON DA CRUZ SANTANA", "label": "", "title": "EDSON DA CRUZ SANTANA -\u003e 00089640/2024 (via BO)", "to": "00089640/2024"}, {"arrows": "", "color": "black", "from": "EDSON DA CRUZ SANTANA", "label": "", "title": "EDSON DA CRUZ SANTANA -\u003e 00150201/2024 (via BO)", "to": "00150201/2024"}, {"arrows": "", "color": "black", "from": "EDSON DA CRUZ SANTANA", "label": "", "title": "EDSON DA CRUZ SANTANA -\u003e 00337447/2024 (via BO)", "to": "00337447/2024"}, {"arrows": "", "color": "black", "from": "EDSON DA CRUZ SANTANA", "label": "", "title": "EDSON DA CRUZ SANTANA -\u003e 00561371/2024 (via BO)", "to": "00561371/2024"}, {"arrows": "", "color": "black", "from": "EDSON DA CRUZ SANTANA", "label": "", "title": "EDSON DA CRUZ SANTANA -\u003e 00599591/2024 (via BO)", "to": "00599591/2024"}, {"arrows": "", "color": "black", "from": "EDSON DA CRUZ SANTANA", "label": "", "title": "EDSON DA CRUZ SANTANA -\u003e 00605501/2024 (via BO)", "to": "00605501/2024"}, {"arrows": "", "color": "black", "from": "EDSON DA CRUZ SANTANA", "label": "", "title": "EDSON DA CRUZ SANTANA -\u003e 00645826/2024 (via BO)", "to": "00645826/2024"}, {"arrows": "", "color": "black", "from": "EDSON DA CRUZ SANTANA", "label": "", "title": "EDSON DA CRUZ SANTANA -\u003e 00682068/2024 (via BO)", "to": "00682068/2024"}, {"arrows": "", "color": "black", "from": "EDSON DE JESUS SANTOS", "label": "", "title": "EDSON DE JESUS SANTOS -\u003e 00043457/2024 (via BO)", "to": "00043457/2024"}, {"arrows": "", "color": "black", "from": "EDSON DE JESUS SANTOS", "label": "", "title": "EDSON DE JESUS SANTOS -\u003e 00046463/2024 (via BO)", "to": "00046463/2024"}, {"arrows": "", "color": "black", "from": "EDSON DE JESUS SANTOS", "label": "", "title": "EDSON DE JESUS SANTOS -\u003e 00077459/2024 (via BO)", "to": "00077459/2024"}, {"arrows": "", "color": "black", "from": "EDSON DE JESUS SANTOS", "label": "", "title": "EDSON DE JESUS SANTOS -\u003e 00081452/2024 (via BO)", "to": "00081452/2024"}, {"arrows": "", "color": "black", "from": "EDSON DE JESUS SANTOS", "label": "", "title": "EDSON DE JESUS SANTOS -\u003e 00086593/2024 (via BO)", "to": "00086593/2024"}, {"arrows": "", "color": "black", "from": "EDSON DE JESUS SANTOS", "label": "", "title": "EDSON DE JESUS SANTOS -\u003e 00089640/2024 (via BO)", "to": "00089640/2024"}, {"arrows": "", "color": "black", "from": "EDSON DE JESUS SANTOS", "label": "", "title": "EDSON DE JESUS SANTOS -\u003e 00223488/2024 (via BO)", "to": "00223488/2024"}, {"arrows": "", "color": "black", "from": "EDSON DE JESUS SANTOS", "label": "", "title": "EDSON DE JESUS SANTOS -\u003e 00231706/2024 (via BO)", "to": "00231706/2024"}, {"arrows": "", "color": "black", "from": "EDSON DE JESUS SANTOS", "label": "", "title": "EDSON DE JESUS SANTOS -\u003e 00561371/2024 (via BO)", "to": "00561371/2024"}, {"arrows": "", "color": "black", "from": "EDSON DE JESUS SANTOS", "label": "", "title": "EDSON DE JESUS SANTOS -\u003e 00599591/2024 (via BO)", "to": "00599591/2024"}, {"arrows": "", "color": "black", "from": "EDSON DE JESUS SANTOS", "label": "", "title": "EDSON DE JESUS SANTOS -\u003e 00605501/2024 (via BO)", "to": "00605501/2024"}, {"arrows": "", "color": "black", "from": "EDSON DE JESUS SANTOS", "label": "", "title": "EDSON DE JESUS SANTOS -\u003e 00645826/2024 (via BO)", "to": "00645826/2024"}, {"arrows": "", "color": "black", "from": "EDSON DE JESUS SANTOS", "label": "", "title": "EDSON DE JESUS SANTOS -\u003e 00682068/2024 (via BO)", "to": "00682068/2024"}, {"arrows": "", "color": "black", "from": "00043457/2024", "label": "", "title": "00043457/2024 -\u003e EDSON DE JESUS SANTOS (via BO)", "to": "EDSON DE JESUS SANTOS"}, {"arrows": "", "color": "black", "from": "00043457/2024", "label": "", "title": "00043457/2024 -\u003e ERIC SATIRO VITORIO (via BO)", "to": "ERIC SATIRO VITORIO"}, {"arrows": "", "color": "black", "from": "00043457/2024", "label": "", "title": "00043457/2024 -\u003e SERGIO DE QUEIROZ DE CRUZ JUNIOR (via BO)", "to": "SERGIO DE QUEIROZ DE CRUZ JUNIOR"}, {"arrows": "", "color": "black", "from": "00043457/2024", "label": "", "title": "00043457/2024 -\u003e EDSON DA CRUZ SANTANA (via BO)", "to": "EDSON DA CRUZ SANTANA"}, {"arrows": "", "color": "r", "from": "DANIEL SOUZA ARAUJO", "label": "MILAE", "title": "PFO -\u003e BO", "to": "00043457/2024"}, {"arrows": "", "color": "black", "from": "ERIC SATIRO VITORIO", "label": "", "title": "ERIC SATIRO VITORIO -\u003e 00043457/2024 (via BO)", "to": "00043457/2024"}, {"arrows": "", "color": "black", "from": "ERIC SATIRO VITORIO", "label": "", "title": "ERIC SATIRO VITORIO -\u003e 00046463/2024 (via BO)", "to": "00046463/2024"}, {"arrows": "", "color": "black", "from": "ERIC SATIRO VITORIO", "label": "", "title": "ERIC SATIRO VITORIO -\u003e 00086593/2024 (via BO)", "to": "00086593/2024"}, {"arrows": "", "color": "black", "from": "ERIC SATIRO VITORIO", "label": "", "title": "ERIC SATIRO VITORIO -\u003e 00089640/2024 (via BO)", "to": "00089640/2024"}, {"arrows": "", "color": "black", "from": "ERIC SATIRO VITORIO", "label": "", "title": "ERIC SATIRO VITORIO -\u003e 00150201/2024 (via BO)", "to": "00150201/2024"}, {"arrows": "", "color": "black", "from": "ERIC SATIRO VITORIO", "label": "", "title": "ERIC SATIRO VITORIO -\u003e 00337447/2024 (via BO)", "to": "00337447/2024"}, {"arrows": "", "color": "black", "from": "ERIC SATIRO VITORIO", "label": "", "title": "ERIC SATIRO VITORIO -\u003e 00599591/2024 (via BO)", "to": "00599591/2024"}, {"arrows": "", "color": "black", "from": "ERIC SATIRO VITORIO", "label": "", "title": "ERIC SATIRO VITORIO -\u003e 00605501/2024 (via BO)", "to": "00605501/2024"}, {"arrows": "", "color": "black", "from": "ERIC SATIRO VITORIO", "label": "", "title": "ERIC SATIRO VITORIO -\u003e 00645826/2024 (via BO)", "to": "00645826/2024"}, {"arrows": "", "color": "black", "from": "ERIC SATIRO VITORIO", "label": "", "title": "ERIC SATIRO VITORIO -\u003e 00718481/2024 (via BO)", "to": "00718481/2024"}, {"arrows": "", "color": "black", "from": "SERGIO DE QUEIROZ DE CRUZ JUNIOR", "label": "", "title": "SERGIO DE QUEIROZ DE CRUZ JUNIOR -\u003e 00043457/2024 (via BO)", "to": "00043457/2024"}, {"arrows": "", "color": "black", "from": "SERGIO DE QUEIROZ DE CRUZ JUNIOR", "label": "", "title": "SERGIO DE QUEIROZ DE CRUZ JUNIOR -\u003e 00046463/2024 (via BO)", "to": "00046463/2024"}, {"arrows": "", "color": "black", "from": "SERGIO DE QUEIROZ DE CRUZ JUNIOR", "label": "", "title": "SERGIO DE QUEIROZ DE CRUZ JUNIOR -\u003e 00150201/2024 (via BO)", "to": "00150201/2024"}, {"arrows": "", "color": "black", "from": "SERGIO DE QUEIROZ DE CRUZ JUNIOR", "label": "", "title": "SERGIO DE QUEIROZ DE CRUZ JUNIOR -\u003e 00223488/2024 (via BO)", "to": "00223488/2024"}, {"arrows": "", "color": "black", "from": "SERGIO DE QUEIROZ DE CRUZ JUNIOR", "label": "", "title": "SERGIO DE QUEIROZ DE CRUZ JUNIOR -\u003e 00231706/2024 (via BO)", "to": "00231706/2024"}, {"arrows": "", "color": "black", "from": "SERGIO DE QUEIROZ DE CRUZ JUNIOR", "label": "", "title": "SERGIO DE QUEIROZ DE CRUZ JUNIOR -\u003e 00561371/2024 (via BO)", "to": "00561371/2024"}, {"arrows": "", "color": "black", "from": "SERGIO DE QUEIROZ DE CRUZ JUNIOR", "label": "", "title": "SERGIO DE QUEIROZ DE CRUZ JUNIOR -\u003e 00599591/2024 (via BO)", "to": "00599591/2024"}, {"arrows": "", "color": "black", "from": "SERGIO DE QUEIROZ DE CRUZ JUNIOR", "label": "", "title": "SERGIO DE QUEIROZ DE CRUZ JUNIOR -\u003e 00605501/2024 (via BO)", "to": "00605501/2024"}, {"arrows": "", "color": "black", "from": "SERGIO DE QUEIROZ DE CRUZ JUNIOR", "label": "", "title": "SERGIO DE QUEIROZ DE CRUZ JUNIOR -\u003e 00682068/2024 (via BO)", "to": "00682068/2024"}, {"arrows": "", "color": "r", "from": "MAICK SANTANA SILVA", "label": "MILAE", "title": "PFO -\u003e BO", "to": "00043457/2024"}, {"arrows": "", "color": "black", "from": "00046463/2024", "label": "", "title": "00046463/2024 -\u003e EDSON DE JESUS SANTOS (via BO)", "to": "EDSON DE JESUS SANTOS"}, {"arrows": "", "color": "black", "from": "00046463/2024", "label": "", "title": "00046463/2024 -\u003e ERIC SATIRO VITORIO (via BO)", "to": "ERIC SATIRO VITORIO"}, {"arrows": "", "color": "black", "from": "00046463/2024", "label": "", "title": "00046463/2024 -\u003e SERGIO DE QUEIROZ DE CRUZ JUNIOR (via BO)", "to": "SERGIO DE QUEIROZ DE CRUZ JUNIOR"}, {"arrows": "", "color": "black", "from": "00046463/2024", "label": "", "title": "00046463/2024 -\u003e EDSON DA CRUZ SANTANA (via BO)", "to": "EDSON DA CRUZ SANTANA"}, {"arrows": "", "color": "r", "from": "IDENTIDADE IGNORADA", "label": "MILAE", "title": "PFO -\u003e BO", "to": "00046463/2024"}, {"arrows": "", "color": "r", "from": "IDENTIDADE IGNORADA", "label": "MILAE", "title": "PFO -\u003e BO", "to": "00086593/2024"}, {"arrows": "", "color": "black", "from": "00077459/2024", "label": "", "title": "00077459/2024 -\u003e CELLYANNE CERQUEIRA SANTOS (via BO)", "to": "CELLYANNE CERQUEIRA SANTOS"}, {"arrows": "", "color": "black", "from": "00077459/2024", "label": "", "title": "00077459/2024 -\u003e EDSON DE JESUS SANTOS (via BO)", "to": "EDSON DE JESUS SANTOS"}, {"arrows": "", "color": "black", "from": "00077459/2024", "label": "", "title": "00077459/2024 -\u003e GERMANO DA PURIFICACAO ASSIS JUNIOR (via BO)", "to": "GERMANO DA PURIFICACAO ASSIS JUNIOR"}, {"arrows": "", "color": "black", "from": "00077459/2024", "label": "", "title": "00077459/2024 -\u003e EDSON DA CRUZ SANTANA (via BO)", "to": "EDSON DA CRUZ SANTANA"}, {"arrows": "", "color": "r", "from": "JEFFERSON DOS SANTOS SILVA", "label": "MILAE", "title": "PFO -\u003e BO", "to": "00077459/2024"}, {"arrows": "", "color": "black", "from": "GERMANO DA PURIFICACAO ASSIS JUNIOR", "label": "", "title": "GERMANO DA PURIFICACAO ASSIS JUNIOR -\u003e 00020604/2024 (via BO)", "to": "00020604/2024"}, {"arrows": "", "color": "black", "from": "GERMANO DA PURIFICACAO ASSIS JUNIOR", "label": "", "title": "GERMANO DA PURIFICACAO ASSIS JUNIOR -\u003e 00055017/2024 (via BO)", "to": "00055017/2024"}, {"arrows": "", "color": "black", "from": "GERMANO DA PURIFICACAO ASSIS JUNIOR", "label": "", "title": "GERMANO DA PURIFICACAO ASSIS JUNIOR -\u003e 00077459/2024 (via BO)", "to": "00077459/2024"}, {"arrows": "", "color": "black", "from": "GERMANO DA PURIFICACAO ASSIS JUNIOR", "label": "", "title": "GERMANO DA PURIFICACAO ASSIS JUNIOR -\u003e 00077461/2024 (via BO)", "to": "00077461/2024"}, {"arrows": "", "color": "black", "from": "GERMANO DA PURIFICACAO ASSIS JUNIOR", "label": "", "title": "GERMANO DA PURIFICACAO ASSIS JUNIOR -\u003e 00081452/2024 (via BO)", "to": "00081452/2024"}, {"arrows": "", "color": "black", "from": "GERMANO DA PURIFICACAO ASSIS JUNIOR", "label": "", "title": "GERMANO DA PURIFICACAO ASSIS JUNIOR -\u003e 00086593/2024 (via BO)", "to": "00086593/2024"}, {"arrows": "", "color": "black", "from": "GERMANO DA PURIFICACAO ASSIS JUNIOR", "label": "", "title": "GERMANO DA PURIFICACAO ASSIS JUNIOR -\u003e 00089640/2024 (via BO)", "to": "00089640/2024"}, {"arrows": "", "color": "black", "from": "GERMANO DA PURIFICACAO ASSIS JUNIOR", "label": "", "title": "GERMANO DA PURIFICACAO ASSIS JUNIOR -\u003e 00418775/2024 (via BO)", "to": "00418775/2024"}, {"arrows": "", "color": "black", "from": "GERMANO DA PURIFICACAO ASSIS JUNIOR", "label": "", "title": "GERMANO DA PURIFICACAO ASSIS JUNIOR -\u003e 00489239/2024 (via BO)", "to": "00489239/2024"}, {"arrows": "", "color": "black", "from": "GERMANO DA PURIFICACAO ASSIS JUNIOR", "label": "", "title": "GERMANO DA PURIFICACAO ASSIS JUNIOR -\u003e 00533288/2024 (via BO)", "to": "00533288/2024"}, {"arrows": "", "color": "r", "from": "MILTON GUERRA SACRAMENTO", "label": "MILAE", "title": "PFO -\u003e BO", "to": "00077459/2024"}, {"arrows": "", "color": "black", "from": "00081452/2024", "label": "", "title": "00081452/2024 -\u003e CELLYANNE CERQUEIRA SANTOS (via BO)", "to": "CELLYANNE CERQUEIRA SANTOS"}, {"arrows": "", "color": "black", "from": "00081452/2024", "label": "", "title": "00081452/2024 -\u003e EDSON DE JESUS SANTOS (via BO)", "to": "EDSON DE JESUS SANTOS"}, {"arrows": "", "color": "black", "from": "00081452/2024", "label": "", "title": "00081452/2024 -\u003e GERMANO DA PURIFICACAO ASSIS JUNIOR (via BO)", "to": "GERMANO DA PURIFICACAO ASSIS JUNIOR"}, {"arrows": "", "color": "black", "from": "00081452/2024", "label": "", "title": "00081452/2024 -\u003e EDSON DA CRUZ SANTANA (via BO)", "to": "EDSON DA CRUZ SANTANA"}, {"arrows": "", "color": "r", "from": "CARLOS ANTONIO CAYRES NETO", "label": "MILAE", "title": "PFO -\u003e BO", "to": "00081452/2024"}, {"arrows": "", "color": "black", "from": "00086593/2024", "label": "", "title": "00086593/2024 -\u003e EDSON DE JESUS SANTOS (via BO)", "to": "EDSON DE JESUS SANTOS"}, {"arrows": "", "color": "black", "from": "00086593/2024", "label": "", "title": "00086593/2024 -\u003e ERIC SATIRO VITORIO (via BO)", "to": "ERIC SATIRO VITORIO"}, {"arrows": "", "color": "black", "from": "00086593/2024", "label": "", "title": "00086593/2024 -\u003e GERMANO DA PURIFICACAO ASSIS JUNIOR (via BO)", "to": "GERMANO DA PURIFICACAO ASSIS JUNIOR"}, {"arrows": "", "color": "black", "from": "00086593/2024", "label": "", "title": "00086593/2024 -\u003e EDSON DA CRUZ SANTANA (via BO)", "to": "EDSON DA CRUZ SANTANA"}, {"arrows": "", "color": "black", "from": "00089640/2024", "label": "", "title": "00089640/2024 -\u003e EDSON DE JESUS SANTOS (via BO)", "to": "EDSON DE JESUS SANTOS"}, {"arrows": "", "color": "black", "from": "00089640/2024", "label": "", "title": "00089640/2024 -\u003e ERIC SATIRO VITORIO (via BO)", "to": "ERIC SATIRO VITORIO"}, {"arrows": "", "color": "black", "from": "00089640/2024", "label": "", "title": "00089640/2024 -\u003e GERMANO DA PURIFICACAO ASSIS JUNIOR (via BO)", "to": "GERMANO DA PURIFICACAO ASSIS JUNIOR"}, {"arrows": "", "color": "black", "from": "00089640/2024", "label": "", "title": "00089640/2024 -\u003e EDSON DA CRUZ SANTANA (via BO)", "to": "EDSON DA CRUZ SANTANA"}, {"arrows": "", "color": "r", "from": "MATHEUS BORGES DOS SANTOS", "label": "MILAE", "title": "PFO -\u003e BO", "to": "00089640/2024"}, {"arrows": "", "color": "black", "from": "00150201/2024", "label": "", "title": "00150201/2024 -\u003e ANDRE LUIZ DE SOUZA CARVALHO (via BO)", "to": "ANDRE LUIZ DE SOUZA CARVALHO"}, {"arrows": "", "color": "black", "from": "00150201/2024", "label": "", "title": "00150201/2024 -\u003e BENEVALDO PEREIRA DE SOUSA (via BO)", "to": "BENEVALDO PEREIRA DE SOUSA"}, {"arrows": "", "color": "black", "from": "00150201/2024", "label": "", "title": "00150201/2024 -\u003e ERIC SATIRO VITORIO (via BO)", "to": "ERIC SATIRO VITORIO"}, {"arrows": "", "color": "black", "from": "00150201/2024", "label": "", "title": "00150201/2024 -\u003e MIGUEL CORREA LIMA (via BO)", "to": "MIGUEL CORREA LIMA"}, {"arrows": "", "color": "black", "from": "00150201/2024", "label": "", "title": "00150201/2024 -\u003e OSVALDO EPIFANIO SILVA JUNIOR (via BO)", "to": "OSVALDO EPIFANIO SILVA JUNIOR"}, {"arrows": "", "color": "black", "from": "00150201/2024", "label": "", "title": "00150201/2024 -\u003e SERGIO DE QUEIROZ DE CRUZ JUNIOR (via BO)", "to": "SERGIO DE QUEIROZ DE CRUZ JUNIOR"}, {"arrows": "", "color": "black", "from": "00150201/2024", "label": "", "title": "00150201/2024 -\u003e EDSON DA CRUZ SANTANA (via BO)", "to": "EDSON DA CRUZ SANTANA"}, {"arrows": "", "color": "r", "from": "CARLOS EDUARDO PEREIRA DOS SANTOS", "label": "MILAE", "title": "PFO -\u003e BO", "to": "00150201/2024"}, {"arrows": "", "color": "r", "from": "MARCOS ANTONIO DOS SANTOS ARAUJO", "label": "MILAE", "title": "PFO -\u003e BO", "to": "00150201/2024"}, {"arrows": "", "color": "r", "from": "NADSON DE JESUS SANTOS", "label": "MILAE", "title": "PFO -\u003e BO", "to": "00150201/2024"}, {"arrows": "", "color": "black", "from": "00337447/2024", "label": "", "title": "00337447/2024 -\u003e ERIC SATIRO VITORIO (via BO)", "to": "ERIC SATIRO VITORIO"}, {"arrows": "", "color": "black", "from": "00337447/2024", "label": "", "title": "00337447/2024 -\u003e MIGUEL CORREA LIMA (via BO)", "to": "MIGUEL CORREA LIMA"}, {"arrows": "", "color": "black", "from": "00337447/2024", "label": "", "title": "00337447/2024 -\u003e THALES RODRIGO DOS SANTOS SILVA (via BO)", "to": "THALES RODRIGO DOS SANTOS SILVA"}, {"arrows": "", "color": "black", "from": "00337447/2024", "label": "", "title": "00337447/2024 -\u003e EDSON DA CRUZ SANTANA (via BO)", "to": "EDSON DA CRUZ SANTANA"}, {"arrows": "", "color": "r", "from": "SIDNEY DOS SANTOS BARBOSA", "label": "MILAE", "title": "PFO -\u003e BO", "to": "00337447/2024"}, {"arrows": "", "color": "black", "from": "00561371/2024", "label": "", "title": "00561371/2024 -\u003e EDSON DE JESUS SANTOS (via BO)", "to": "EDSON DE JESUS SANTOS"}, {"arrows": "", "color": "black", "from": "00561371/2024", "label": "", "title": "00561371/2024 -\u003e SERGIO DE QUEIROZ DE CRUZ JUNIOR (via BO)", "to": "SERGIO DE QUEIROZ DE CRUZ JUNIOR"}, {"arrows": "", "color": "black", "from": "00561371/2024", "label": "", "title": "00561371/2024 -\u003e WENDELL VERENISIO GONZAGA FIGUEIREDO SANTOS (via BO)", "to": "WENDELL VERENISIO GONZAGA FIGUEIREDO SANTOS"}, {"arrows": "", "color": "black", "from": "00561371/2024", "label": "", "title": "00561371/2024 -\u003e EDSON DA CRUZ SANTANA (via BO)", "to": "EDSON DA CRUZ SANTANA"}, {"arrows": "", "color": "r", "from": "JOSE MILTON DOS SANTOS JUNIOR", "label": "MILAE", "title": "PFO -\u003e BO", "to": "00561371/2024"}, {"arrows": "", "color": "black", "from": "00599591/2024", "label": "", "title": "00599591/2024 -\u003e ANDRE LUIZ DE SOUZA CARVALHO (via BO)", "to": "ANDRE LUIZ DE SOUZA CARVALHO"}, {"arrows": "", "color": "black", "from": "00599591/2024", "label": "", "title": "00599591/2024 -\u003e BENEVALDO PEREIRA DE SOUSA (via BO)", "to": "BENEVALDO PEREIRA DE SOUSA"}, {"arrows": "", "color": "black", "from": "00599591/2024", "label": "", "title": "00599591/2024 -\u003e CELLYANNE CERQUEIRA SANTOS (via BO)", "to": "CELLYANNE CERQUEIRA SANTOS"}, {"arrows": "", "color": "black", "from": "00599591/2024", "label": "", "title": "00599591/2024 -\u003e CLAUDEMIRO DOS SANTOS OLIVEIRA (via BO)", "to": "CLAUDEMIRO DOS SANTOS OLIVEIRA"}, {"arrows": "", "color": "black", "from": "00599591/2024", "label": "", "title": "00599591/2024 -\u003e EDSON DE JESUS SANTOS (via BO)", "to": "EDSON DE JESUS SANTOS"}, {"arrows": "", "color": "black", "from": "00599591/2024", "label": "", "title": "00599591/2024 -\u003e ERIC SATIRO VITORIO (via BO)", "to": "ERIC SATIRO VITORIO"}, {"arrows": "", "color": "black", "from": "00599591/2024", "label": "", "title": "00599591/2024 -\u003e SERGIO DE QUEIROZ DE CRUZ JUNIOR (via BO)", "to": "SERGIO DE QUEIROZ DE CRUZ JUNIOR"}, {"arrows": "", "color": "black", "from": "00599591/2024", "label": "", "title": "00599591/2024 -\u003e EDSON DA CRUZ SANTANA (via BO)", "to": "EDSON DA CRUZ SANTANA"}, {"arrows": "", "color": "r", "from": "MARCELO FERREIRA SANTOS", "label": "MILAE", "title": "PFO -\u003e BO", "to": "00599591/2024"}, {"arrows": "", "color": "black", "from": "00605501/2024", "label": "", "title": "00605501/2024 -\u003e ADRIANO DA CONCEICAO MATOS (via BO)", "to": "ADRIANO DA CONCEICAO MATOS"}, {"arrows": "", "color": "black", "from": "00605501/2024", "label": "", "title": "00605501/2024 -\u003e EDSON DE JESUS SANTOS (via BO)", "to": "EDSON DE JESUS SANTOS"}, {"arrows": "", "color": "black", "from": "00605501/2024", "label": "", "title": "00605501/2024 -\u003e ERIC SATIRO VITORIO (via BO)", "to": "ERIC SATIRO VITORIO"}, {"arrows": "", "color": "black", "from": "00605501/2024", "label": "", "title": "00605501/2024 -\u003e JOSE ALVES DO NASCIMENTO NETO (via BO)", "to": "JOSE ALVES DO NASCIMENTO NETO"}, {"arrows": "", "color": "black", "from": "00605501/2024", "label": "", "title": "00605501/2024 -\u003e SERGIO DE QUEIROZ DE CRUZ JUNIOR (via BO)", "to": "SERGIO DE QUEIROZ DE CRUZ JUNIOR"}, {"arrows": "", "color": "black", "from": "00605501/2024", "label": "", "title": "00605501/2024 -\u003e VICTOR ROLEMBERG NUNES SANTOS (via BO)", "to": "VICTOR ROLEMBERG NUNES SANTOS"}, {"arrows": "", "color": "black", "from": "00605501/2024", "label": "", "title": "00605501/2024 -\u003e EDSON DA CRUZ SANTANA (via BO)", "to": "EDSON DA CRUZ SANTANA"}, {"arrows": "", "color": "r", "from": "DELMIRO ALVES DA SILVA FILHO", "label": "MILAE", "title": "PFO -\u003e BO", "to": "00605501/2024"}, {"arrows": "", "color": "r", "from": "LUCAS VIANA DOREA DOS SANTOS", "label": "MILAE", "title": "PFO -\u003e BO", "to": "00605501/2024"}, {"arrows": "", "color": "black", "from": "00645826/2024", "label": "", "title": "00645826/2024 -\u003e EDSON DE JESUS SANTOS (via BO)", "to": "EDSON DE JESUS SANTOS"}, {"arrows": "", "color": "black", "from": "00645826/2024", "label": "", "title": "00645826/2024 -\u003e ERIC SATIRO VITORIO (via BO)", "to": "ERIC SATIRO VITORIO"}, {"arrows": "", "color": "black", "from": "00645826/2024", "label": "", "title": "00645826/2024 -\u003e SERGIO DE QUEIROZ DE CRUZ JUNIO (via BO)", "to": "SERGIO DE QUEIROZ DE CRUZ JUNIO"}, {"arrows": "", "color": "black", "from": "00645826/2024", "label": "", "title": "00645826/2024 -\u003e EDSON DA CRUZ SANTANA (via BO)", "to": "EDSON DA CRUZ SANTANA"}, {"arrows": "", "color": "r", "from": "RIAN DOS SANTOS FREITAS", "label": "MILAE", "title": "PFO -\u003e BO", "to": "00645826/2024"}, {"arrows": "", "color": "black", "from": "00682068/2024", "label": "", "title": "00682068/2024 -\u003e EDSON DE JESUS SANTOS (via BO)", "to": "EDSON DE JESUS SANTOS"}, {"arrows": "", "color": "black", "from": "00682068/2024", "label": "", "title": "00682068/2024 -\u003e SERGIO DE QUEIROZ DE CRUZ JUNIOR (via BO)", "to": "SERGIO DE QUEIROZ DE CRUZ JUNIOR"}, {"arrows": "", "color": "black", "from": "00682068/2024", "label": "", "title": "00682068/2024 -\u003e WENDELL VERENISIO GONZAGA FIGUEIREDO SANTOS (via BO)", "to": "WENDELL VERENISIO GONZAGA FIGUEIREDO SANTOS"}, {"arrows": "", "color": "black", "from": "00682068/2024", "label": "", "title": "00682068/2024 -\u003e EDSON DA CRUZ SANTANA (via BO)", "to": "EDSON DA CRUZ SANTANA"}, {"arrows": "", "color": "r", "from": "BENIVALDO DE SOUZA SANTOS", "label": "MILAE", "title": "PFO -\u003e BO", "to": "00682068/2024"}, {"arrows": "", "color": "black", "from": "00223488/2024", "label": "", "title": "00223488/2024 -\u003e ANDRE LUIZ DE SOUZA CARVALHO (via BO)", "to": "ANDRE LUIZ DE SOUZA CARVALHO"}, {"arrows": "", "color": "black", "from": "00223488/2024", "label": "", "title": "00223488/2024 -\u003e CELLYANNE CERQUEIRA SANTOS (via BO)", "to": "CELLYANNE CERQUEIRA SANTOS"}, {"arrows": "", "color": "black", "from": "00223488/2024", "label": "", "title": "00223488/2024 -\u003e SERGIO DE QUEIROZ DE CRUZ JUNIOR (via BO)", "to": "SERGIO DE QUEIROZ DE CRUZ JUNIOR"}, {"arrows": "", "color": "black", "from": "00223488/2024", "label": "", "title": "00223488/2024 -\u003e EDSON DE JESUS SANTOS (via BO)", "to": "EDSON DE JESUS SANTOS"}, {"arrows": "", "color": "r", "from": "JULIANDERSON SANTOS TEIXEIRA", "label": "MILAE", "title": "PFO -\u003e BO", "to": "00223488/2024"}, {"arrows": "", "color": "black", "from": "00231706/2024", "label": "", "title": "00231706/2024 -\u003e ANDRE LUIZ DE SOUZA CARVALHO (via BO)", "to": "ANDRE LUIZ DE SOUZA CARVALHO"}, {"arrows": "", "color": "black", "from": "00231706/2024", "label": "", "title": "00231706/2024 -\u003e AUREO OLIVEIRA RIOS NETO (via BO)", "to": "AUREO OLIVEIRA RIOS NETO"}, {"arrows": "", "color": "black", "from": "00231706/2024", "label": "", "title": "00231706/2024 -\u003e CELLYANNE CERQUEIRA SANTOS (via BO)", "to": "CELLYANNE CERQUEIRA SANTOS"}, {"arrows": "", "color": "black", "from": "00231706/2024", "label": "", "title": "00231706/2024 -\u003e SERGIO DE QUEIROZ DE CRUZ JUNIOR (via BO)", "to": "SERGIO DE QUEIROZ DE CRUZ JUNIOR"}, {"arrows": "", "color": "black", "from": "00231706/2024", "label": "", "title": "00231706/2024 -\u003e EDSON DE JESUS SANTOS (via BO)", "to": "EDSON DE JESUS SANTOS"}, {"arrows": "", "color": "r", "from": "RAFAEL DE JESUS SANTOS", "label": "MILAE", "title": "PFO -\u003e BO", "to": "00231706/2024"}, {"arrows": "", "color": "black", "from": "00718481/2024", "label": "", "title": "00718481/2024 -\u003e ANDRE GUSTAVO DOS SANTOS (via BO)", "to": "ANDRE GUSTAVO DOS SANTOS"}, {"arrows": "", "color": "black", "from": "00718481/2024", "label": "", "title": "00718481/2024 -\u003e ANDRE RICARDO BORGES BOAVENTURA (via BO)", "to": "ANDRE RICARDO BORGES BOAVENTURA"}, {"arrows": "", "color": "black", "from": "00718481/2024", "label": "", "title": "00718481/2024 -\u003e AUREO OLIVEIRA RIOS NETO (via BO)", "to": "AUREO OLIVEIRA RIOS NETO"}, {"arrows": "", "color": "black", "from": "00718481/2024", "label": "", "title": "00718481/2024 -\u003e BRUNO JOSE MELO SOUZA (via BO)", "to": "BRUNO JOSE MELO SOUZA"}, {"arrows": "", "color": "black", "from": "00718481/2024", "label": "", "title": "00718481/2024 -\u003e DAVI RIOS SOUSA (via BO)", "to": "DAVI RIOS SOUSA"}, {"arrows": "", "color": "black", "from": "00718481/2024", "label": "", "title": "00718481/2024 -\u003e ITALO GUILHERME SANTOS MAGALHAES (via BO)", "to": "ITALO GUILHERME SANTOS MAGALHAES"}, {"arrows": "", "color": "black", "from": "00718481/2024", "label": "", "title": "00718481/2024 -\u003e IVO RIBEIRO BORGES SAMPAIO (via BO)", "to": "IVO RIBEIRO BORGES SAMPAIO"}, {"arrows": "", "color": "black", "from": "00718481/2024", "label": "", "title": "00718481/2024 -\u003e LEANDRO BORGES DE SENA (via BO)", "to": "LEANDRO BORGES DE SENA"}, {"arrows": "", "color": "black", "from": "00718481/2024", "label": "", "title": "00718481/2024 -\u003e NESTOR MACIEL FIGUEIREDO (via BO)", "to": "NESTOR MACIEL FIGUEIREDO"}, {"arrows": "", "color": "black", "from": "00718481/2024", "label": "", "title": "00718481/2024 -\u003e RICARDO SANTOS GONCALVES (via BO)", "to": "RICARDO SANTOS GONCALVES"}, {"arrows": "", "color": "black", "from": "00718481/2024", "label": "", "title": "00718481/2024 -\u003e ROBERT FELIX DE SANTANA (via BO)", "to": "ROBERT FELIX DE SANTANA"}, {"arrows": "", "color": "black", "from": "00718481/2024", "label": "", "title": "00718481/2024 -\u003e SAMUEL CORREIA OLIVEIRA (via BO)", "to": "SAMUEL CORREIA OLIVEIRA"}, {"arrows": "", "color": "black", "from": "00718481/2024", "label": "", "title": "00718481/2024 -\u003e THIAGO VENAS CARLOS (via BO)", "to": "THIAGO VENAS CARLOS"}, {"arrows": "", "color": "r", "from": "ARLAN DOS SANTOS MOTA", "label": "MILAE", "title": "PFO -\u003e BO", "to": "00718481/2024"}, {"arrows": "", "color": "r", "from": "CAUAN CARVALHO DA SILVA", "label": "MILAE", "title": "PFO -\u003e BO", "to": "00718481/2024"}, {"arrows": "", "color": "r", "from": "MESSIAS DOS SANTOS MOTA", "label": "MILAE", "title": "PFO -\u003e BO", "to": "00718481/2024"}, {"arrows": "", "color": "r", "from": "RAI VICTOR DOS SANTOS COUTINHO COSTA", "label": "MILAE", "title": "PFO -\u003e BO", "to": "00718481/2024"}, {"arrows": "", "color": "black", "from": "00020604/2024", "label": "", "title": "00020604/2024 -\u003e EDSON VALMIR FRANCA SANTOS (via BO)", "to": "EDSON VALMIR FRANCA SANTOS"}, {"arrows": "", "color": "black", "from": "00020604/2024", "label": "", "title": "00020604/2024 -\u003e ERONILSON DA MOTA ALVES (via BO)", "to": "ERONILSON DA MOTA ALVES"}, {"arrows": "", "color": "black", "from": "00020604/2024", "label": "", "title": "00020604/2024 -\u003e GABRIEL PATRIOTA DE CASTRO (via BO)", "to": "GABRIEL PATRIOTA DE CASTRO"}, {"arrows": "", "color": "black", "from": "00020604/2024", "label": "", "title": "00020604/2024 -\u003e LEVI DA MOTA SANTOS (via BO)", "to": "LEVI DA MOTA SANTOS"}, {"arrows": "", "color": "black", "from": "00020604/2024", "label": "", "title": "00020604/2024 -\u003e PEDRO HENRIQUE DE OLIVEIRA SANTOS (via BO)", "to": "PEDRO HENRIQUE DE OLIVEIRA SANTOS"}, {"arrows": "", "color": "black", "from": "00020604/2024", "label": "", "title": "00020604/2024 -\u003e REMERSON SENA SILVA (via BO)", "to": "REMERSON SENA SILVA"}, {"arrows": "", "color": "black", "from": "00020604/2024", "label": "", "title": "00020604/2024 -\u003e VINICIUS GONCALVES NASCIMENTO (via BO)", "to": "VINICIUS GONCALVES NASCIMENTO"}, {"arrows": "", "color": "r", "from": "ROBERT REIS DE SOUZA", "label": "MILAE", "title": "PFO -\u003e BO", "to": "00020604/2024"}, {"arrows": "", "color": "black", "from": "00055017/2024", "label": "", "title": "00055017/2024 -\u003e EDSON VALMIR FRANCA SANTOS (via BO)", "to": "EDSON VALMIR FRANCA SANTOS"}, {"arrows": "", "color": "black", "from": "00055017/2024", "label": "", "title": "00055017/2024 -\u003e ERONILSON DA MOTA ALVES (via BO)", "to": "ERONILSON DA MOTA ALVES"}, {"arrows": "", "color": "black", "from": "00055017/2024", "label": "", "title": "00055017/2024 -\u003e GABRIEL PATRIOTA DE CASTRO (via BO)", "to": "GABRIEL PATRIOTA DE CASTRO"}, {"arrows": "", "color": "r", "from": "RAFAEL GONCALVES DA CUNHA", "label": "MILAE", "title": "PFO -\u003e BO", "to": "00055017/2024"}, {"arrows": "", "color": "black", "from": "00077461/2024", "label": "", "title": "00077461/2024 -\u003e ANDERSON LUIZ SAMPAIO DA SILVA (via BO)", "to": "ANDERSON LUIZ SAMPAIO DA SILVA"}, {"arrows": "", "color": "black", "from": "00077461/2024", "label": "", "title": "00077461/2024 -\u003e DEMOSTHENES LUIZ MALANDRA PEREIRA (via BO)", "to": "DEMOSTHENES LUIZ MALANDRA PEREIRA"}, {"arrows": "", "color": "black", "from": "00077461/2024", "label": "", "title": "00077461/2024 -\u003e JOBSON SOUZA CORTES (via BO)", "to": "JOBSON SOUZA CORTES"}, {"arrows": "", "color": "r", "from": "JONATAS MENEZES BARRETO DOS SANTOS", "label": "MILAE", "title": "PFO -\u003e BO", "to": "00077461/2024"}, {"arrows": "", "color": "black", "from": "00418775/2024", "label": "", "title": "00418775/2024 -\u003e EDSON VALMIR FRANCA SANTOS (via BO)", "to": "EDSON VALMIR FRANCA SANTOS"}, {"arrows": "", "color": "black", "from": "00418775/2024", "label": "", "title": "00418775/2024 -\u003e LAURO VIEIRA NASCIMENTO (via BO)", "to": "LAURO VIEIRA NASCIMENTO"}, {"arrows": "", "color": "black", "from": "00418775/2024", "label": "", "title": "00418775/2024 -\u003e MARCUS DEMETRIUS SANTOS FERREIRA (via BO)", "to": "MARCUS DEMETRIUS SANTOS FERREIRA"}, {"arrows": "", "color": "r", "from": "VINICIUS FERNANDES DA COSTA", "label": "MILAE", "title": "PFO -\u003e BO", "to": "00418775/2024"}, {"arrows": "", "color": "black", "from": "00489239/2024", "label": "", "title": "00489239/2024 -\u003e ABIMAEL RODRIGUES LIMA (via BO)", "to": "ABIMAEL RODRIGUES LIMA"}, {"arrows": "", "color": "black", "from": "00489239/2024", "label": "", "title": "00489239/2024 -\u003e ERONILSON DA MOTA ALVES (via BO)", "to": "ERONILSON DA MOTA ALVES"}, {"arrows": "", "color": "black", "from": "00489239/2024", "label": "", "title": "00489239/2024 -\u003e RODRIGO SILVA SANTOS (via BO)", "to": "RODRIGO SILVA SANTOS"}, {"arrows": "", "color": "r", "from": "JEREMIAS SANTOS SANTOS", "label": "MILAE", "title": "PFO -\u003e BO", "to": "00489239/2024"}, {"arrows": "", "color": "black", "from": "00533288/2024", "label": "", "title": "00533288/2024 -\u003e DENIS UINDSON MOURA DA SILVA (via BO)", "to": "DENIS UINDSON MOURA DA SILVA"}, {"arrows": "", "color": "black", "from": "00533288/2024", "label": "", "title": "00533288/2024 -\u003e JAILSON FLORENCIO DA SILVA (via BO)", "to": "JAILSON FLORENCIO DA SILVA"}, {"arrows": "", "color": "black", "from": "00533288/2024", "label": "", "title": "00533288/2024 -\u003e MARCUS VINICIUS SODRE VIEIRA DA SILVA (via BO)", "to": "MARCUS VINICIUS SODRE VIEIRA DA SILVA"}, {"arrows": "", "color": "black", "from": "00533288/2024", "label": "", "title": "00533288/2024 -\u003e MURILO PAULO SANTOS BATISTA (via BO)", "to": "MURILO PAULO SANTOS BATISTA"}, {"arrows": "", "color": "black", "from": "00533288/2024", "label": "", "title": "00533288/2024 -\u003e RICARDO SILVA DA CONCEICAO (via BO)", "to": "RICARDO SILVA DA CONCEICAO"}, {"arrows": "", "color": "r", "from": "LUIZ FERNANDO DOS REIS", "label": "MILAE", "title": "PFO -\u003e BO", "to": "00533288/2024"}, {"arrows": "", "color": "r", "from": "RAFEL DOS SANTOS OLIVEIRA", "label": "MILAE", "title": "PFO -\u003e BO", "to": "00533288/2024"}]);
+
+                  nodeColors = {};
+                  allNodes = nodes.get({ returnType: "Object" });
+                  for (nodeId in allNodes) {
+                    nodeColors[nodeId] = allNodes[nodeId].color;
+                  }
+                  allEdges = edges.get({ returnType: "Object" });
+                  // adding nodes and edges to the graph
+                  data = {nodes: nodes, edges: edges};
+
+                  var options = {
+    "configure": {
+        "enabled": true,
+        "filter": true
+    },
+    "edges": {
+        "color": {
+            "inherit": true
+        },
+        "smooth": {
+            "enabled": true,
+            "type": "dynamic"
+        }
+    },
+    "interaction": {
+        "dragNodes": true,
+        "hideEdgesOnDrag": false,
+        "hideNodesOnDrag": false
+    },
+    "physics": {
+        "enabled": true,
+        "forceAtlas2Based": {
+            "avoidOverlap": 0,
+            "centralGravity": 0.01,
+            "damping": 0.4,
+            "gravitationalConstant": -32,
+            "springConstant": 0.08,
+            "springLength": 100
+        },
+        "solver": "forceAtlas2Based",
+        "stabilization": {
+            "enabled": true,
+            "fit": true,
+            "iterations": 1000,
+            "onlyDynamicEdges": false,
+            "updateInterval": 50
+        }
+    }
+};
+
+                  
+
+
+                  
+                  // if this network requires displaying the configure window,
+                  // put it in its div
+                  options.configure["container"] = document.getElementById("config");
+                  
+
+                  network = new vis.Network(container, data, options);
+
+                  
+
+                  
+
+                  
+
+
+                  
+                      network.on("stabilizationProgress", function(params) {
+                          document.getElementById('loadingBar').removeAttribute("style");
+                          var maxWidth = 496;
+                          var minWidth = 20;
+                          var widthFactor = params.iterations/params.total;
+                          var width = Math.max(minWidth,maxWidth * widthFactor);
+                          document.getElementById('bar').style.width = width + 'px';
+                          document.getElementById('text').innerHTML = Math.round(widthFactor*100) + '%';
+                      });
+                      network.once("stabilizationIterationsDone", function() {
+                          document.getElementById('text').innerHTML = '100%';
+                          document.getElementById('bar').style.width = '496px';
+                          document.getElementById('loadingBar').style.opacity = 0;
+                          // really clean the dom element
+                          setTimeout(function () {document.getElementById('loadingBar').style.display = 'none';}, 500);
+                      });
+                  
+
+                  return network;
+
+              }
+              drawGraph();
+        </script>
+    </body>
+</html>

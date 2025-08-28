@@ -1,0 +1,63 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Relatório de Ocorrências</title>
+    <link rel="stylesheet" href="relatorio.css">
+</head>
+<body>
+
+    <div class="container">
+        <header>
+            <h1>Relatório de Ocorrências</h1>
+            <a href="porta_links.html">Voltar para o Home</a>
+        </header>
+
+        <section class="dashboard">
+            <div class="stat-card">
+                <h2 id="total-ocorrencias">0</h2>
+                <p>Total de Ocorrências</p>
+            </div>
+            <div class="stat-card">
+                <h2 id="total-com-obito">0</h2>
+                <p>Com Óbito</p>
+            </div>
+            <div class="stat-card">
+                <h2 id="total-com-ae">0</h2>
+                <p>Com Agente Envolvido</p>
+            </div>
+            <div class="stat-card">
+                <h2 id="total-sem-ae">0</h2>
+                <p>Sem Agente Envolvido</p>
+            </div>
+        </section>
+
+        <section class="tabela-container">
+            <div class="tabela-header">
+                <h3>Detalhes das Ocorrências</h3>
+                <input type="text" id="tabela-busca" placeholder="Buscar em todas as colunas...">
+                <button id="print-btn">Imprimir Relatório</button>
+            </div>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Data</th>
+                        <th>Município</th>
+                        <th>Bairro</th>
+                        <th>AISP</th>
+                        <th>Tipo</th>
+                        <th>Descrição</th>
+                        
+                    </tr>
+                </thead>
+                <tbody id="tabela-corpo">
+                    </tbody>
+            </table>
+        </section>
+    </div>
+
+    <script type="module" src="js/relatorio.js"></script>
+
+</body>
+</html>

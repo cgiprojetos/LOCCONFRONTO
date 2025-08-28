@@ -1,0 +1,2 @@
+# cgigeoanalytcs
+GEOLOCALIZAÇÃO DOS CONFRONTOS NA BAHIA

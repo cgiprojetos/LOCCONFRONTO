@@ -1,0 +1,393 @@
+<html>
+    <head>
+        <meta charset="utf-8">
+        
+            <script>function neighbourhoodHighlight(params) {
+  // console.log("in nieghbourhoodhighlight");
+  allNodes = nodes.get({ returnType: "Object" });
+  // originalNodes = JSON.parse(JSON.stringify(allNodes));
+  // if something is selected:
+  if (params.nodes.length > 0) {
+    highlightActive = true;
+    var i, j;
+    var selectedNode = params.nodes[0];
+    var degrees = 2;
+
+    // mark all nodes as hard to read.
+    for (let nodeId in allNodes) {
+      // nodeColors[nodeId] = allNodes[nodeId].color;
+      allNodes[nodeId].color = "rgba(200,200,200,0.5)";
+      if (allNodes[nodeId].hiddenLabel === undefined) {
+        allNodes[nodeId].hiddenLabel = allNodes[nodeId].label;
+        allNodes[nodeId].label = undefined;
+      }
+    }
+    var connectedNodes = network.getConnectedNodes(selectedNode);
+    var allConnectedNodes = [];
+
+    // get the second degree nodes
+    for (i = 1; i < degrees; i++) {
+      for (j = 0; j < connectedNodes.length; j++) {
+        allConnectedNodes = allConnectedNodes.concat(
+          network.getConnectedNodes(connectedNodes[j])
+        );
+      }
+    }
+
+    // all second degree nodes get a different color and their label back
+    for (i = 0; i < allConnectedNodes.length; i++) {
+      // allNodes[allConnectedNodes[i]].color = "pink";
+      allNodes[allConnectedNodes[i]].color = "rgba(150,150,150,0.75)";
+      if (allNodes[allConnectedNodes[i]].hiddenLabel !== undefined) {
+        allNodes[allConnectedNodes[i]].label =
+          allNodes[allConnectedNodes[i]].hiddenLabel;
+        allNodes[allConnectedNodes[i]].hiddenLabel = undefined;
+      }
+    }
+
+    // all first degree nodes get their own color and their label back
+    for (i = 0; i < connectedNodes.length; i++) {
+      // allNodes[connectedNodes[i]].color = undefined;
+      allNodes[connectedNodes[i]].color = nodeColors[connectedNodes[i]];
+      if (allNodes[connectedNodes[i]].hiddenLabel !== undefined) {
+        allNodes[connectedNodes[i]].label =
+          allNodes[connectedNodes[i]].hiddenLabel;
+        allNodes[connectedNodes[i]].hiddenLabel = undefined;
+      }
+    }
+
+    // the main node gets its own color and its label back.
+    // allNodes[selectedNode].color = undefined;
+    allNodes[selectedNode].color = nodeColors[selectedNode];
+    if (allNodes[selectedNode].hiddenLabel !== undefined) {
+      allNodes[selectedNode].label = allNodes[selectedNode].hiddenLabel;
+      allNodes[selectedNode].hiddenLabel = undefined;
+    }
+  } else if (highlightActive === true) {
+    // console.log("highlightActive was true");
+    // reset all nodes
+    for (let nodeId in allNodes) {
+      // allNodes[nodeId].color = "purple";
+      allNodes[nodeId].color = nodeColors[nodeId];
+      // delete allNodes[nodeId].color;
+      if (allNodes[nodeId].hiddenLabel !== undefined) {
+        allNodes[nodeId].label = allNodes[nodeId].hiddenLabel;
+        allNodes[nodeId].hiddenLabel = undefined;
+      }
+    }
+    highlightActive = false;
+  }
+
+  // transform the object into an array
+  var updateArray = [];
+  if (params.nodes.length > 0) {
+    for (let nodeId in allNodes) {
+      if (allNodes.hasOwnProperty(nodeId)) {
+        // console.log(allNodes[nodeId]);
+        updateArray.push(allNodes[nodeId]);
+      }
+    }
+    nodes.update(updateArray);
+  } else {
+    // console.log("Nothing was selected");
+    for (let nodeId in allNodes) {
+      if (allNodes.hasOwnProperty(nodeId)) {
+        // console.log(allNodes[nodeId]);
+        // allNodes[nodeId].color = {};
+        updateArray.push(allNodes[nodeId]);
+      }
+    }
+    nodes.update(updateArray);
+  }
+}
+
+function filterHighlight(params) {
+  allNodes = nodes.get({ returnType: "Object" });
+  // if something is selected:
+  if (params.nodes.length > 0) {
+    filterActive = true;
+    let selectedNodes = params.nodes;
+
+    // hiding all nodes and saving the label
+    for (let nodeId in allNodes) {
+      allNodes[nodeId].hidden = true;
+      if (allNodes[nodeId].savedLabel === undefined) {
+        allNodes[nodeId].savedLabel = allNodes[nodeId].label;
+        allNodes[nodeId].label = undefined;
+      }
+    }
+
+    for (let i=0; i < selectedNodes.length; i++) {
+      allNodes[selectedNodes[i]].hidden = false;
+      if (allNodes[selectedNodes[i]].savedLabel !== undefined) {
+        allNodes[selectedNodes[i]].label = allNodes[selectedNodes[i]].savedLabel;
+        allNodes[selectedNodes[i]].savedLabel = undefined;
+      }
+    }
+
+  } else if (filterActive === true) {
+    // reset all nodes
+    for (let nodeId in allNodes) {
+      allNodes[nodeId].hidden = false;
+      if (allNodes[nodeId].savedLabel !== undefined) {
+        allNodes[nodeId].label = allNodes[nodeId].savedLabel;
+        allNodes[nodeId].savedLabel = undefined;
+      }
+    }
+    filterActive = false;
+  }
+
+  // transform the object into an array
+  var updateArray = [];
+  if (params.nodes.length > 0) {
+    for (let nodeId in allNodes) {
+      if (allNodes.hasOwnProperty(nodeId)) {
+        updateArray.push(allNodes[nodeId]);
+      }
+    }
+    nodes.update(updateArray);
+  } else {
+    for (let nodeId in allNodes) {
+      if (allNodes.hasOwnProperty(nodeId)) {
+        updateArray.push(allNodes[nodeId]);
+      }
+    }
+    nodes.update(updateArray);
+  }
+}
+
+function selectNode(nodes) {
+  network.selectNodes(nodes);
+  neighbourhoodHighlight({ nodes: nodes });
+  return nodes;
+}
+
+function selectNodes(nodes) {
+  network.selectNodes(nodes);
+  filterHighlight({nodes: nodes});
+  return nodes;
+}
+
+function highlightFilter(filter) {
+  let selectedNodes = []
+  let selectedProp = filter['property']
+  if (filter['item'] === 'node') {
+    let allNodes = nodes.get({ returnType: "Object" });
+    for (let nodeId in allNodes) {
+      if (allNodes[nodeId][selectedProp] && filter['value'].includes((allNodes[nodeId][selectedProp]).toString())) {
+        selectedNodes.push(nodeId)
+      }
+    }
+  }
+  else if (filter['item'] === 'edge'){
+    let allEdges = edges.get({returnType: 'object'});
+    // check if the selected property exists for selected edge and select the nodes connected to the edge
+    for (let edge in allEdges) {
+      if (allEdges[edge][selectedProp] && filter['value'].includes((allEdges[edge][selectedProp]).toString())) {
+        selectedNodes.push(allEdges[edge]['from'])
+        selectedNodes.push(allEdges[edge]['to'])
+      }
+    }
+  }
+  selectNodes(selectedNodes)
+}</script>
+            <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/vis-network/9.1.2/dist/dist/vis-network.min.css" integrity="sha512-WgxfT5LWjfszlPHXRmBWHkV2eceiWTOBvrKCNbdgDYTHrT2AeLCGbF4sZlZw3UMN3WtL0tGUoIAKsu8mllg/XA==" crossorigin="anonymous" referrerpolicy="no-referrer" />
+            <script src="https://cdnjs.cloudflare.com/ajax/libs/vis-network/9.1.2/dist/vis-network.min.js" integrity="sha512-LnvoEWDFrqGHlHmDD2101OrLcbsfkrzoSpvtSQtxK3RMnRV0eOkhhBN2dXHKRrUU8p2DGRTk35n4O8nWSVe1mQ==" crossorigin="anonymous" referrerpolicy="no-referrer"></script>
+            
+            
+            
+            
+            
+            
+
+        
+<center>
+<h1></h1>
+</center>
+
+<!-- <link rel="stylesheet" href="../node_modules/vis/dist/vis.min.css" type="text/css" />
+<script type="text/javascript" src="../node_modules/vis/dist/vis.js"> </script>-->
+        <link
+          href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.0-beta3/dist/css/bootstrap.min.css"
+          rel="stylesheet"
+          integrity="sha384-eOJMYsd53ii+scO/bJGFsiCZc+5NDVN2yr8+0RDqr0Ql0h+rP48ckxlpbzKgwra6"
+          crossorigin="anonymous"
+        />
+        <script
+          src="https://cdn.jsdelivr.net/npm/bootstrap@5.0.0-beta3/dist/js/bootstrap.bundle.min.js"
+          integrity="sha384-JEW9xMcG8R+pH31jmWH6WWP0WintQrMb4s7ZOdauHnUtxwoG2vI5DkLtS3qm9Ekf"
+          crossorigin="anonymous"
+        ></script>
+
+
+        <center>
+          <h1></h1>
+        </center>
+        <style type="text/css">
+
+             #mynetwork {
+                 width: 100%;
+                 height: 100vh;
+                 background-color: #FFFFFF;
+                 border: 1px solid lightgray;
+                 position: relative;
+                 float: left;
+             }
+
+             
+
+             
+             #config {
+                 float: left;
+                 width: 400px;
+                 height: 600px;
+             }
+             
+
+             
+        </style>
+    </head>
+
+
+    <body>
+        <div class="card" style="width: 100%">
+            
+            
+            <div id="mynetwork" class="card-body"></div>
+        </div>
+
+        
+        
+           
+        
+
+        <script type="text/javascript">
+
+              // initialize global variables.
+              var edges;
+              var nodes;
+              var allNodes;
+              var allEdges;
+              var nodeColors;
+              var originalNodes;
+              var network;
+              var container;
+              var options, data;
+              var filter = {
+                  item : '',
+                  property : '',
+                  value : []
+              };
+
+              
+
+              
+
+              // This method is responsible for drawing the graph, returns the drawn network
+              function drawGraph() {
+                  var container = document.getElementById('mynetwork');
+
+                  
+
+                  // parsing and collecting nodes and edges from the python
+                  nodes = new vis.DataSet([{"color": "red", "font": {"color": "black"}, "id": "LEANDRO PINTO SIMOES", "label": "LEANDRO PINTO SIMOES", "shape": "dot", "size": 25, "title": "LEANDRO PINTO SIMOES"}, {"color": "orange", "font": {"color": "black"}, "id": "BRUNA EMMANUELLE PEREIRA SILVA", "label": "BRUNA EMMANUELLE PEREIRA SILVA", "shape": "dot", "size": 24.4, "title": "BRUNA EMMANUELLE PEREIRA SILVA"}, {"color": "blue", "font": {"color": "black"}, "id": "00441982/2025", "label": "00441982/2025", "shape": "dot", "size": 9, "title": "BO: 00441982/2025"}, {"color": "black", "font": {"color": "black"}, "id": "IDENTIDADE IGNORADA", "label": "IDENTIDADE IGNORADA", "shape": "dot", "size": 9, "title": "PFO: IDENTIDADE IGNORADA"}, {"color": "red", "font": {"color": "black"}, "id": "DANILTON SANTOS DA SILVA", "label": "DANILTON SANTOS DA SILVA", "shape": "dot", "size": 25, "title": "DANILTON SANTOS DA SILVA"}, {"color": "orange", "font": {"color": "black"}, "id": "EDER ALMEIDA PINHEIRO", "label": "EDER ALMEIDA PINHEIRO", "shape": "dot", "size": 19.6, "title": "EDER ALMEIDA PINHEIRO"}, {"color": "orange", "font": {"color": "black"}, "id": "GABRIEL FERREIRA DA SILVA", "label": "GABRIEL FERREIRA DA SILVA", "shape": "dot", "size": 19.6, "title": "GABRIEL FERREIRA DA SILVA"}, {"color": "orange", "font": {"color": "black"}, "id": "LEANDRO OLIVEIRA SOUZA", "label": "LEANDRO OLIVEIRA SOUZA", "shape": "dot", "size": 22.0, "title": "LEANDRO OLIVEIRA SOUZA"}, {"color": "orange", "font": {"color": "black"}, "id": "LUCAS EDUARDO DA PAIXAO MERCES", "label": "LUCAS EDUARDO DA PAIXAO MERCES", "shape": "dot", "size": 19.6, "title": "LUCAS EDUARDO DA PAIXAO MERCES"}, {"color": "orange", "font": {"color": "black"}, "id": "RENAN MENDES DE LIMA E SILVA", "label": "RENAN MENDES DE LIMA E SILVA", "shape": "dot", "size": 19.6, "title": "RENAN MENDES DE LIMA E SILVA"}, {"color": "blue", "font": {"color": "black"}, "id": "00294798/2025", "label": "00294798/2025", "shape": "dot", "size": 9, "title": "BO: 00294798/2025"}, {"color": "black", "font": {"color": "black"}, "id": "JANDERSON PEREIRA DOS SANTOS", "label": "JANDERSON PEREIRA DOS SANTOS", "shape": "dot", "size": 9, "title": "PFO: JANDERSON PEREIRA DOS SANTOS"}, {"color": "orange", "font": {"color": "black"}, "id": "EDUARDO SANTOS", "label": "EDUARDO SANTOS", "shape": "dot", "size": 14.8, "title": "EDUARDO SANTOS"}, {"color": "black", "font": {"color": "black"}, "id": "FELIPE DE OLIVEIRA TELES", "label": "FELIPE DE OLIVEIRA TELES", "shape": "dot", "size": 9, "title": "PFO: FELIPE DE OLIVEIRA TELES"}, {"color": "orange", "font": {"color": "black"}, "id": "ANDRE LUIZ DE JESUS BISPO", "label": "ANDRE LUIZ DE JESUS BISPO", "shape": "dot", "size": 17.2, "title": "ANDRE LUIZ DE JESUS BISPO"}, {"color": "blue", "font": {"color": "black"}, "id": "00252041/2024", "label": "00252041/2024", "shape": "dot", "size": 9, "title": "BO: 00252041/2024"}, {"color": "black", "font": {"color": "black"}, "id": "LUIS ANTONIO SANTOS DA HORA", "label": "LUIS ANTONIO SANTOS DA HORA", "shape": "dot", "size": 9, "title": "PFO: LUIS ANTONIO SANTOS DA HORA"}, {"color": "red", "font": {"color": "black"}, "id": "CLEBERSON DO ESPIRITO SANTO TRINDADE", "label": "CLEBERSON DO ESPIRITO SANTO TRINDADE", "shape": "dot", "size": 25, "title": "CLEBERSON DO ESPIRITO SANTO TRINDADE"}, {"color": "orange", "font": {"color": "black"}, "id": "EDMILSON ROCHA DA SILVA", "label": "EDMILSON ROCHA DA SILVA", "shape": "dot", "size": 17.2, "title": "EDMILSON ROCHA DA SILVA"}, {"color": "orange", "font": {"color": "black"}, "id": "EVANDRO ANTONIO MENDES DA SILVA", "label": "EVANDRO ANTONIO MENDES DA SILVA", "shape": "dot", "size": 20.799999999999997, "title": "EVANDRO ANTONIO MENDES DA SILVA"}, {"color": "orange", "font": {"color": "black"}, "id": "FRANCISCO CARLOS LUZ SOARES JUNIOR", "label": "FRANCISCO CARLOS LUZ SOARES JUNIOR", "shape": "dot", "size": 17.2, "title": "FRANCISCO CARLOS LUZ SOARES JUNIOR"}, {"color": "orange", "font": {"color": "black"}, "id": "MERCIO ADRIANO FEREIRA FREITAS FILHO", "label": "MERCIO ADRIANO FEREIRA FREITAS FILHO", "shape": "dot", "size": 17.2, "title": "MERCIO ADRIANO FEREIRA FREITAS FILHO"}, {"color": "orange", "font": {"color": "black"}, "id": "RAMON HENRIQUE DE LIMA SANTOS", "label": "RAMON HENRIQUE DE LIMA SANTOS", "shape": "dot", "size": 19.6, "title": "RAMON HENRIQUE DE LIMA SANTOS"}, {"color": "orange", "font": {"color": "black"}, "id": "RICARDO BRUNO SANTOS JORGE", "label": "RICARDO BRUNO SANTOS JORGE", "shape": "dot", "size": 17.2, "title": "RICARDO BRUNO SANTOS JORGE"}, {"color": "orange", "font": {"color": "black"}, "id": "TIAGO SILVA DE SANTANA", "label": "TIAGO SILVA DE SANTANA", "shape": "dot", "size": 19.6, "title": "TIAGO SILVA DE SANTANA"}, {"color": "black", "font": {"color": "black"}, "id": "LUIS FELIPE MARQUES DA SILVA", "label": "LUIS FELIPE MARQUES DA SILVA", "shape": "dot", "size": 9, "title": "PFO: LUIS FELIPE MARQUES DA SILVA"}, {"color": "black", "font": {"color": "black"}, "id": "EDILSON SILVA SANTOS", "label": "EDILSON SILVA SANTOS", "shape": "dot", "size": 9, "title": "PFO: EDILSON SILVA SANTOS"}, {"color": "blue", "font": {"color": "black"}, "id": "00398973/2024", "label": "00398973/2024", "shape": "dot", "size": 9, "title": "BO: 00398973/2024"}, {"color": "black", "font": {"color": "black"}, "id": "ISAIAS MENDES DA SILVA", "label": "ISAIAS MENDES DA SILVA", "shape": "dot", "size": 9, "title": "PFO: ISAIAS MENDES DA SILVA"}, {"color": "red", "font": {"color": "black"}, "id": "JORGE ITALO DINIZ DOS SANTOS", "label": "JORGE ITALO DINIZ DOS SANTOS", "shape": "dot", "size": 25, "title": "JORGE ITALO DINIZ DOS SANTOS"}, {"color": "red", "font": {"color": "black"}, "id": "ADIMILSON SANTANA NOGUEIRA", "label": "ADIMILSON SANTANA NOGUEIRA", "shape": "dot", "size": 25, "title": "ADIMILSON SANTANA NOGUEIRA"}, {"color": "blue", "font": {"color": "black"}, "id": "00484056/2024", "label": "00484056/2024", "shape": "dot", "size": 9, "title": "BO: 00484056/2024"}, {"color": "black", "font": {"color": "black"}, "id": "RODRIGO DA ROCHA BARBOSA", "label": "RODRIGO DA ROCHA BARBOSA", "shape": "dot", "size": 9, "title": "PFO: RODRIGO DA ROCHA BARBOSA"}, {"color": "orange", "font": {"color": "black"}, "id": "CELIOMAR ALEXANDRE DA SILVA SANTOS", "label": "CELIOMAR ALEXANDRE DA SILVA SANTOS", "shape": "dot", "size": 28.0, "title": "CELIOMAR ALEXANDRE DA SILVA SANTOS"}, {"color": "orange", "font": {"color": "black"}, "id": "MERCIO ADRIANO FERREIRA FREITAS FILHO", "label": "MERCIO ADRIANO FERREIRA FREITAS FILHO", "shape": "dot", "size": 19.6, "title": "MERCIO ADRIANO FERREIRA FREITAS FILHO"}, {"color": "black", "font": {"color": "black"}, "id": "RODRIGO DA SILVA OLIVEIRA", "label": "RODRIGO DA SILVA OLIVEIRA", "shape": "dot", "size": 9, "title": "PFO: RODRIGO DA SILVA OLIVEIRA"}, {"color": "black", "font": {"color": "black"}, "id": "KAYKE DA CONCEICAO CONRADO", "label": "KAYKE DA CONCEICAO CONRADO", "shape": "dot", "size": 9, "title": "PFO: KAYKE DA CONCEICAO CONRADO"}, {"color": "black", "font": {"color": "black"}, "id": "SPARTACO SAUL CONCEICAO DE AVELAR", "label": "SPARTACO SAUL CONCEICAO DE AVELAR", "shape": "dot", "size": 9, "title": "PFO: SPARTACO SAUL CONCEICAO DE AVELAR"}, {"color": "orange", "font": {"color": "black"}, "id": "CARLOS ROBERTO DE OLIVEIRA DOS SANTOS", "label": "CARLOS ROBERTO DE OLIVEIRA DOS SANTOS", "shape": "dot", "size": 14.8, "title": "CARLOS ROBERTO DE OLIVEIRA DOS SANTOS"}, {"color": "blue", "font": {"color": "black"}, "id": "00841644/2024", "label": "00841644/2024", "shape": "dot", "size": 9, "title": "BO: 00841644/2024"}, {"color": "black", "font": {"color": "black"}, "id": "CESAR DO NASCIMENTO", "label": "CESAR DO NASCIMENTO", "shape": "dot", "size": 9, "title": "PFO: CESAR DO NASCIMENTO"}, {"color": "blue", "font": {"color": "black"}, "id": "00377140/2024", "label": "00377140/2024", "shape": "dot", "size": 9, "title": "BO: 00377140/2024"}, {"color": "black", "font": {"color": "black"}, "id": "MIKE DOUGLAS NASCIMENTO SILVA", "label": "MIKE DOUGLAS NASCIMENTO SILVA", "shape": "dot", "size": 9, "title": "PFO: MIKE DOUGLAS NASCIMENTO SILVA"}, {"color": "orange", "font": {"color": "black"}, "id": "PABLO DA CRUZ S\u00c1", "label": "PABLO DA CRUZ S\u00c1", "shape": "dot", "size": 11.2, "title": "PABLO DA CRUZ S\u00c1"}, {"color": "blue", "font": {"color": "black"}, "id": "00048829/2024", "label": "00048829/2024", "shape": "dot", "size": 9, "title": "BO: 00048829/2024"}, {"color": "black", "font": {"color": "black"}, "id": "HUMBERTO SANTOS SANTANA JUNIOR", "label": "HUMBERTO SANTOS SANTANA JUNIOR", "shape": "dot", "size": 9, "title": "PFO: HUMBERTO SANTOS SANTANA JUNIOR"}, {"color": "orange", "font": {"color": "black"}, "id": "WILLIAM OLIVEIRA NASCIMENTO", "label": "WILLIAM OLIVEIRA NASCIMENTO", "shape": "dot", "size": 14.8, "title": "WILLIAM OLIVEIRA NASCIMENTO"}, {"color": "blue", "font": {"color": "black"}, "id": "00787499/2024", "label": "00787499/2024", "shape": "dot", "size": 9, "title": "BO: 00787499/2024"}, {"color": "black", "font": {"color": "black"}, "id": "CHRISTIAN SANTOS NOVAIS DA SILVA", "label": "CHRISTIAN SANTOS NOVAIS DA SILVA", "shape": "dot", "size": 9, "title": "PFO: CHRISTIAN SANTOS NOVAIS DA SILVA"}, {"color": "orange", "font": {"color": "black"}, "id": "MARCOS SOUSA DE SANTANA", "label": "MARCOS SOUSA DE SANTANA", "shape": "dot", "size": 11.2, "title": "MARCOS SOUSA DE SANTANA"}, {"color": "blue", "font": {"color": "black"}, "id": "00685039/2024", "label": "00685039/2024", "shape": "dot", "size": 9, "title": "BO: 00685039/2024"}, {"color": "black", "font": {"color": "black"}, "id": "FILIPE DA SILVA", "label": "FILIPE DA SILVA", "shape": "dot", "size": 9, "title": "PFO: FILIPE DA SILVA"}, {"color": "orange", "font": {"color": "black"}, "id": "ALEXANDRE HAHMANN", "label": "ALEXANDRE HAHMANN", "shape": "dot", "size": 12.4, "title": "ALEXANDRE HAHMANN"}, {"color": "blue", "font": {"color": "black"}, "id": "00086643/2024", "label": "00086643/2024", "shape": "dot", "size": 9, "title": "BO: 00086643/2024"}, {"color": "black", "font": {"color": "black"}, "id": "VICTOR BORGES FETAL", "label": "VICTOR BORGES FETAL", "shape": "dot", "size": 9, "title": "PFO: VICTOR BORGES FETAL"}, {"color": "orange", "font": {"color": "black"}, "id": "GILBERTO PEREIRA JUNIOR", "label": "GILBERTO PEREIRA JUNIOR", "shape": "dot", "size": 16.0, "title": "GILBERTO PEREIRA JUNIOR"}, {"color": "orange", "font": {"color": "black"}, "id": "DJALMA MARCOS SANTANA ALMEIDA", "label": "DJALMA MARCOS SANTANA ALMEIDA", "shape": "dot", "size": 12.4, "title": "DJALMA MARCOS SANTANA ALMEIDA"}, {"color": "blue", "font": {"color": "black"}, "id": "00366253/2025", "label": "00366253/2025", "shape": "dot", "size": 9, "title": "BO: 00366253/2025"}, {"color": "black", "font": {"color": "black"}, "id": "CARLOS MAGNO PEREIRA RAMOS", "label": "CARLOS MAGNO PEREIRA RAMOS", "shape": "dot", "size": 9, "title": "PFO: CARLOS MAGNO PEREIRA RAMOS"}, {"color": "orange", "font": {"color": "black"}, "id": "IGOR HEITOR SANTOS DOS SANTOS", "label": "IGOR HEITOR SANTOS DOS SANTOS", "shape": "dot", "size": 12.4, "title": "IGOR HEITOR SANTOS DOS SANTOS"}, {"color": "orange", "font": {"color": "black"}, "id": "LUIS FELIPE VITORINO DE SOUZA", "label": "LUIS FELIPE VITORINO DE SOUZA", "shape": "dot", "size": 14.8, "title": "LUIS FELIPE VITORINO DE SOUZA"}, {"color": "orange", "font": {"color": "black"}, "id": "RUAN LOPES DE ARAUJO REIS", "label": "RUAN LOPES DE ARAUJO REIS", "shape": "dot", "size": 12.4, "title": "RUAN LOPES DE ARAUJO REIS"}, {"color": "black", "font": {"color": "black"}, "id": "MARCOS PAULO MOTA CRUZ", "label": "MARCOS PAULO MOTA CRUZ", "shape": "dot", "size": 9, "title": "PFO: MARCOS PAULO MOTA CRUZ"}, {"color": "orange", "font": {"color": "black"}, "id": "EVERTON LUIZ SANTOS MOTA", "label": "EVERTON LUIZ SANTOS MOTA", "shape": "dot", "size": 14.8, "title": "EVERTON LUIZ SANTOS MOTA"}, {"color": "blue", "font": {"color": "black"}, "id": "00617309/2024", "label": "00617309/2024", "shape": "dot", "size": 9, "title": "BO: 00617309/2024"}, {"color": "black", "font": {"color": "black"}, "id": "ROBERT ANDERSON PEREIRA DO SANTOS", "label": "ROBERT ANDERSON PEREIRA DO SANTOS", "shape": "dot", "size": 9, "title": "PFO: ROBERT ANDERSON PEREIRA DO SANTOS"}, {"color": "black", "font": {"color": "black"}, "id": "ESDRAS MARIANO DE ARAUJO", "label": "ESDRAS MARIANO DE ARAUJO", "shape": "dot", "size": 9, "title": "PFO: ESDRAS MARIANO DE ARAUJO"}, {"color": "orange", "font": {"color": "black"}, "id": "CARLOS EDUARDO LOPES FRANCA", "label": "CARLOS EDUARDO LOPES FRANCA", "shape": "dot", "size": 12.4, "title": "CARLOS EDUARDO LOPES FRANCA"}, {"color": "blue", "font": {"color": "black"}, "id": "00193027/2025", "label": "00193027/2025", "shape": "dot", "size": 9, "title": "BO: 00193027/2025"}, {"color": "black", "font": {"color": "black"}, "id": "CARLOS IAN DACE DE PAULA", "label": "CARLOS IAN DACE DE PAULA", "shape": "dot", "size": 9, "title": "PFO: CARLOS IAN DACE DE PAULA"}, {"color": "orange", "font": {"color": "black"}, "id": "MATHEUS RIBEIRO PINTO", "label": "MATHEUS RIBEIRO PINTO", "shape": "dot", "size": 11.2, "title": "MATHEUS RIBEIRO PINTO"}, {"color": "blue", "font": {"color": "black"}, "id": "00529485/2025", "label": "00529485/2025", "shape": "dot", "size": 9, "title": "BO: 00529485/2025"}, {"color": "black", "font": {"color": "black"}, "id": "ALESANDRO JORGE FRANCA NOGUEIRA FILHO", "label": "ALESANDRO JORGE FRANCA NOGUEIRA FILHO", "shape": "dot", "size": 9, "title": "PFO: ALESANDRO JORGE FRANCA NOGUEIRA FILHO"}, {"color": "blue", "font": {"color": "black"}, "id": "00186045/2024", "label": "00186045/2024", "shape": "dot", "size": 9, "title": "BO: 00186045/2024"}, {"color": "orange", "font": {"color": "black"}, "id": "JONATAS VINICIUS ROCHA BARRETO", "label": "JONATAS VINICIUS ROCHA BARRETO", "shape": "dot", "size": 12.4, "title": "JONATAS VINICIUS ROCHA BARRETO"}, {"color": "blue", "font": {"color": "black"}, "id": "00715002/2024", "label": "00715002/2024", "shape": "dot", "size": 9, "title": "BO: 00715002/2024"}, {"color": "black", "font": {"color": "black"}, "id": "ADSON EMANOEL DA SILVA DOS SANTOS", "label": "ADSON EMANOEL DA SILVA DOS SANTOS", "shape": "dot", "size": 9, "title": "PFO: ADSON EMANOEL DA SILVA DOS SANTOS"}, {"color": "black", "font": {"color": "black"}, "id": "REINALDI MENEZES BRITO", "label": "REINALDI MENEZES BRITO", "shape": "dot", "size": 9, "title": "PFO: REINALDI MENEZES BRITO"}, {"color": "black", "font": {"color": "black"}, "id": "ITALO ANDRE DOS SANTOS TEIXEIRA", "label": "ITALO ANDRE DOS SANTOS TEIXEIRA", "shape": "dot", "size": 9, "title": "PFO: ITALO ANDRE DOS SANTOS TEIXEIRA"}, {"color": "orange", "font": {"color": "black"}, "id": "CARLOS MAURICIO NETO", "label": "CARLOS MAURICIO NETO", "shape": "dot", "size": 11.2, "title": "CARLOS MAURICIO NETO"}, {"color": "blue", "font": {"color": "black"}, "id": "00259511/2025", "label": "00259511/2025", "shape": "dot", "size": 9, "title": "BO: 00259511/2025"}, {"color": "black", "font": {"color": "black"}, "id": "THIAGO DA CONCEICAO RIBEIRO", "label": "THIAGO DA CONCEICAO RIBEIRO", "shape": "dot", "size": 9, "title": "PFO: THIAGO DA CONCEICAO RIBEIRO"}, {"color": "orange", "font": {"color": "black"}, "id": "RICARDO SILVA DOS REIS", "label": "RICARDO SILVA DOS REIS", "shape": "dot", "size": 12.4, "title": "RICARDO SILVA DOS REIS"}, {"color": "blue", "font": {"color": "black"}, "id": "00435009/2024", "label": "00435009/2024", "shape": "dot", "size": 9, "title": "BO: 00435009/2024"}, {"color": "black", "font": {"color": "black"}, "id": "MARCOS ANDRE OLIVEIRA DOS PASSOS", "label": "MARCOS ANDRE OLIVEIRA DOS PASSOS", "shape": "dot", "size": 9, "title": "PFO: MARCOS ANDRE OLIVEIRA DOS PASSOS"}, {"color": "blue", "font": {"color": "black"}, "id": "00283812/2025", "label": "00283812/2025", "shape": "dot", "size": 9, "title": "BO: 00283812/2025"}, {"color": "black", "font": {"color": "black"}, "id": "DANIEL GOMES LUCAS", "label": "DANIEL GOMES LUCAS", "shape": "dot", "size": 9, "title": "PFO: DANIEL GOMES LUCAS"}, {"color": "blue", "font": {"color": "black"}, "id": "00535061/2025", "label": "00535061/2025", "shape": "dot", "size": 9, "title": "BO: 00535061/2025"}, {"color": "black", "font": {"color": "black"}, "id": "EDUARDO SILVA SANTOS FERREIRA", "label": "EDUARDO SILVA SANTOS FERREIRA", "shape": "dot", "size": 9, "title": "PFO: EDUARDO SILVA SANTOS FERREIRA"}, {"color": "orange", "font": {"color": "black"}, "id": "MACLAN MUNIZ MOREIRA", "label": "MACLAN MUNIZ MOREIRA", "shape": "dot", "size": 11.2, "title": "MACLAN MUNIZ MOREIRA"}]);
+                  edges = new vis.DataSet([{"arrows": "", "color": "black", "from": "LEANDRO PINTO SIMOES", "label": "", "title": "LEANDRO PINTO SIMOES -\u003e 00441982/2025 (via BO)", "to": "00441982/2025"}, {"arrows": "", "color": "black", "from": "LEANDRO PINTO SIMOES", "label": "", "title": "LEANDRO PINTO SIMOES -\u003e 00294798/2025 (via BO)", "to": "00294798/2025"}, {"arrows": "", "color": "black", "from": "LEANDRO PINTO SIMOES", "label": "", "title": "LEANDRO PINTO SIMOES -\u003e 00252041/2024 (via BO)", "to": "00252041/2024"}, {"arrows": "", "color": "black", "from": "LEANDRO PINTO SIMOES", "label": "", "title": "LEANDRO PINTO SIMOES -\u003e 00398973/2024 (via BO)", "to": "00398973/2024"}, {"arrows": "", "color": "black", "from": "00441982/2025", "label": "", "title": "00441982/2025 -\u003e BRUNA EMMANUELLE PEREIRA SILVA (via BO)", "to": "BRUNA EMMANUELLE PEREIRA SILVA"}, {"arrows": "", "color": "black", "from": "00441982/2025", "label": "", "title": "00441982/2025 -\u003e DANILTON SANTOS DA SILVA (via BO)", "to": "DANILTON SANTOS DA SILVA"}, {"arrows": "", "color": "black", "from": "00441982/2025", "label": "", "title": "00441982/2025 -\u003e EDER ALMEIDA PINHEIRO (via BO)", "to": "EDER ALMEIDA PINHEIRO"}, {"arrows": "", "color": "black", "from": "00441982/2025", "label": "", "title": "00441982/2025 -\u003e GABRIEL FERREIRA DA SILVA (via BO)", "to": "GABRIEL FERREIRA DA SILVA"}, {"arrows": "", "color": "black", "from": "00441982/2025", "label": "", "title": "00441982/2025 -\u003e LEANDRO OLIVEIRA SOUZA (via BO)", "to": "LEANDRO OLIVEIRA SOUZA"}, {"arrows": "", "color": "black", "from": "00441982/2025", "label": "", "title": "00441982/2025 -\u003e LUCAS EDUARDO DA PAIXAO MERCES (via BO)", "to": "LUCAS EDUARDO DA PAIXAO MERCES"}, {"arrows": "", "color": "black", "from": "00441982/2025", "label": "", "title": "00441982/2025 -\u003e RENAN MENDES DE LIMA E SILVA (via BO)", "to": "RENAN MENDES DE LIMA E SILVA"}, {"arrows": "", "color": "black", "from": "00441982/2025", "label": "", "title": "00441982/2025 -\u003e LEANDRO PINTO SIMOES (via BO)", "to": "LEANDRO PINTO SIMOES"}, {"arrows": "", "color": "r", "from": "IDENTIDADE IGNORADA", "label": "MILAE", "title": "PFO -\u003e BO", "to": "00441982/2025"}, {"arrows": "", "color": "r", "from": "IDENTIDADE IGNORADA", "label": "MILAE", "title": "PFO -\u003e BO", "to": "00186045/2024"}, {"arrows": "", "color": "black", "from": "DANILTON SANTOS DA SILVA", "label": "", "title": "DANILTON SANTOS DA SILVA -\u003e 00441982/2025 (via BO)", "to": "00441982/2025"}, {"arrows": "", "color": "black", "from": "DANILTON SANTOS DA SILVA", "label": "", "title": "DANILTON SANTOS DA SILVA -\u003e 00294798/2025 (via BO)", "to": "00294798/2025"}, {"arrows": "", "color": "black", "from": "DANILTON SANTOS DA SILVA", "label": "", "title": "DANILTON SANTOS DA SILVA -\u003e 00398973/2024 (via BO)", "to": "00398973/2024"}, {"arrows": "", "color": "black", "from": "00294798/2025", "label": "", "title": "00294798/2025 -\u003e BRUNA EMMANUELLE PEREIRA SILVA (via BO)", "to": "BRUNA EMMANUELLE PEREIRA SILVA"}, {"arrows": "", "color": "black", "from": "00294798/2025", "label": "", "title": "00294798/2025 -\u003e DANILTON SANTOS DA SILVA (via BO)", "to": "DANILTON SANTOS DA SILVA"}, {"arrows": "", "color": "black", "from": "00294798/2025", "label": "", "title": "00294798/2025 -\u003e EDUARDO SANTOS (via BO)", "to": "EDUARDO SANTOS"}, {"arrows": "", "color": "black", "from": "00294798/2025", "label": "", "title": "00294798/2025 -\u003e LEANDRO PINTO SIMOES (via BO)", "to": "LEANDRO PINTO SIMOES"}, {"arrows": "", "color": "r", "from": "JANDERSON PEREIRA DOS SANTOS", "label": "MILAE", "title": "PFO -\u003e BO", "to": "00294798/2025"}, {"arrows": "", "color": "r", "from": "FELIPE DE OLIVEIRA TELES", "label": "MILAE", "title": "PFO -\u003e BO", "to": "00294798/2025"}, {"arrows": "", "color": "black", "from": "00252041/2024", "label": "", "title": "00252041/2024 -\u003e ANDRE LUIZ DE JESUS BISPO (via BO)", "to": "ANDRE LUIZ DE JESUS BISPO"}, {"arrows": "", "color": "black", "from": "00252041/2024", "label": "", "title": "00252041/2024 -\u003e CLEBERSON DO ESPIRITO SANTO TRINDADE (via BO)", "to": "CLEBERSON DO ESPIRITO SANTO TRINDADE"}, {"arrows": "", "color": "black", "from": "00252041/2024", "label": "", "title": "00252041/2024 -\u003e EDMILSON ROCHA DA SILVA (via BO)", "to": "EDMILSON ROCHA DA SILVA"}, {"arrows": "", "color": "black", "from": "00252041/2024", "label": "", "title": "00252041/2024 -\u003e EVANDRO ANTONIO MENDES DA SILVA (via BO)", "to": "EVANDRO ANTONIO MENDES DA SILVA"}, {"arrows": "", "color": "black", "from": "00252041/2024", "label": "", "title": "00252041/2024 -\u003e FRANCISCO CARLOS LUZ SOARES JUNIOR (via BO)", "to": "FRANCISCO CARLOS LUZ SOARES JUNIOR"}, {"arrows": "", "color": "black", "from": "00252041/2024", "label": "", "title": "00252041/2024 -\u003e MERCIO ADRIANO FEREIRA FREITAS FILHO (via BO)", "to": "MERCIO ADRIANO FEREIRA FREITAS FILHO"}, {"arrows": "", "color": "black", "from": "00252041/2024", "label": "", "title": "00252041/2024 -\u003e RAMON HENRIQUE DE LIMA SANTOS (via BO)", "to": "RAMON HENRIQUE DE LIMA SANTOS"}, {"arrows": "", "color": "black", "from": "00252041/2024", "label": "", "title": "00252041/2024 -\u003e RICARDO BRUNO SANTOS JORGE (via BO)", "to": "RICARDO BRUNO SANTOS JORGE"}, {"arrows": "", "color": "black", "from": "00252041/2024", "label": "", "title": "00252041/2024 -\u003e TIAGO SILVA DE SANTANA (via BO)", "to": "TIAGO SILVA DE SANTANA"}, {"arrows": "", "color": "black", "from": "00252041/2024", "label": "", "title": "00252041/2024 -\u003e LEANDRO PINTO SIMOES (via BO)", "to": "LEANDRO PINTO SIMOES"}, {"arrows": "", "color": "r", "from": "LUIS ANTONIO SANTOS DA HORA", "label": "MILAE", "title": "PFO -\u003e BO", "to": "00252041/2024"}, {"arrows": "", "color": "black", "from": "CLEBERSON DO ESPIRITO SANTO TRINDADE", "label": "", "title": "CLEBERSON DO ESPIRITO SANTO TRINDADE -\u003e 00252041/2024 (via BO)", "to": "00252041/2024"}, {"arrows": "", "color": "black", "from": "CLEBERSON DO ESPIRITO SANTO TRINDADE", "label": "", "title": "CLEBERSON DO ESPIRITO SANTO TRINDADE -\u003e 00366253/2025 (via BO)", "to": "00366253/2025"}, {"arrows": "", "color": "black", "from": "CLEBERSON DO ESPIRITO SANTO TRINDADE", "label": "", "title": "CLEBERSON DO ESPIRITO SANTO TRINDADE -\u003e 00617309/2024 (via BO)", "to": "00617309/2024"}, {"arrows": "", "color": "black", "from": "CLEBERSON DO ESPIRITO SANTO TRINDADE", "label": "", "title": "CLEBERSON DO ESPIRITO SANTO TRINDADE -\u003e 00193027/2025 (via BO)", "to": "00193027/2025"}, {"arrows": "", "color": "black", "from": "CLEBERSON DO ESPIRITO SANTO TRINDADE", "label": "", "title": "CLEBERSON DO ESPIRITO SANTO TRINDADE -\u003e 00529485/2025 (via BO)", "to": "00529485/2025"}, {"arrows": "", "color": "r", "from": "LUIS FELIPE MARQUES DA SILVA", "label": "MILAE", "title": "PFO -\u003e BO", "to": "00252041/2024"}, {"arrows": "", "color": "r", "from": "EDILSON SILVA SANTOS", "label": "MILAE", "title": "PFO -\u003e BO", "to": "00252041/2024"}, {"arrows": "", "color": "black", "from": "00398973/2024", "label": "", "title": "00398973/2024 -\u003e DANILTON SANTOS DA SILVA (via BO)", "to": "DANILTON SANTOS DA SILVA"}, {"arrows": "", "color": "black", "from": "00398973/2024", "label": "", "title": "00398973/2024 -\u003e LEANDRO OLIVEIRA SOUZA (via BO)", "to": "LEANDRO OLIVEIRA SOUZA"}, {"arrows": "", "color": "black", "from": "00398973/2024", "label": "", "title": "00398973/2024 -\u003e LEANDRO PINTO SIMOES (via BO)", "to": "LEANDRO PINTO SIMOES"}, {"arrows": "", "color": "r", "from": "ISAIAS MENDES DA SILVA", "label": "MILAE", "title": "PFO -\u003e BO", "to": "00398973/2024"}, {"arrows": "", "color": "black", "from": "JORGE ITALO DINIZ DOS SANTOS", "label": "", "title": "JORGE ITALO DINIZ DOS SANTOS -\u003e 00484056/2024 (via BO)", "to": "00484056/2024"}, {"arrows": "", "color": "black", "from": "JORGE ITALO DINIZ DOS SANTOS", "label": "", "title": "JORGE ITALO DINIZ DOS SANTOS -\u003e 00841644/2024 (via BO)", "to": "00841644/2024"}, {"arrows": "", "color": "black", "from": "JORGE ITALO DINIZ DOS SANTOS", "label": "", "title": "JORGE ITALO DINIZ DOS SANTOS -\u003e 00377140/2024 (via BO)", "to": "00377140/2024"}, {"arrows": "", "color": "black", "from": "JORGE ITALO DINIZ DOS SANTOS", "label": "", "title": "JORGE ITALO DINIZ DOS SANTOS -\u003e 00048829/2024 (via BO)", "to": "00048829/2024"}, {"arrows": "", "color": "black", "from": "JORGE ITALO DINIZ DOS SANTOS", "label": "", "title": "JORGE ITALO DINIZ DOS SANTOS -\u003e 00787499/2024 (via BO)", "to": "00787499/2024"}, {"arrows": "", "color": "black", "from": "JORGE ITALO DINIZ DOS SANTOS", "label": "", "title": "JORGE ITALO DINIZ DOS SANTOS -\u003e 00685039/2024 (via BO)", "to": "00685039/2024"}, {"arrows": "", "color": "black", "from": "JORGE ITALO DINIZ DOS SANTOS", "label": "", "title": "JORGE ITALO DINIZ DOS SANTOS -\u003e 00086643/2024 (via BO)", "to": "00086643/2024"}, {"arrows": "", "color": "black", "from": "ADIMILSON SANTANA NOGUEIRA", "label": "", "title": "ADIMILSON SANTANA NOGUEIRA -\u003e 00186045/2024 (via BO)", "to": "00186045/2024"}, {"arrows": "", "color": "black", "from": "ADIMILSON SANTANA NOGUEIRA", "label": "", "title": "ADIMILSON SANTANA NOGUEIRA -\u003e 00484056/2024 (via BO)", "to": "00484056/2024"}, {"arrows": "", "color": "black", "from": "ADIMILSON SANTANA NOGUEIRA", "label": "", "title": "ADIMILSON SANTANA NOGUEIRA -\u003e 00715002/2024 (via BO)", "to": "00715002/2024"}, {"arrows": "", "color": "black", "from": "ADIMILSON SANTANA NOGUEIRA", "label": "", "title": "ADIMILSON SANTANA NOGUEIRA -\u003e 00377140/2024 (via BO)", "to": "00377140/2024"}, {"arrows": "", "color": "black", "from": "ADIMILSON SANTANA NOGUEIRA", "label": "", "title": "ADIMILSON SANTANA NOGUEIRA -\u003e 00259511/2025 (via BO)", "to": "00259511/2025"}, {"arrows": "", "color": "black", "from": "ADIMILSON SANTANA NOGUEIRA", "label": "", "title": "ADIMILSON SANTANA NOGUEIRA -\u003e 00435009/2024 (via BO)", "to": "00435009/2024"}, {"arrows": "", "color": "black", "from": "ADIMILSON SANTANA NOGUEIRA", "label": "", "title": "ADIMILSON SANTANA NOGUEIRA -\u003e 00283812/2025 (via BO)", "to": "00283812/2025"}, {"arrows": "", "color": "black", "from": "ADIMILSON SANTANA NOGUEIRA", "label": "", "title": "ADIMILSON SANTANA NOGUEIRA -\u003e 00535061/2025 (via BO)", "to": "00535061/2025"}, {"arrows": "", "color": "black", "from": "00484056/2024", "label": "", "title": "00484056/2024 -\u003e ADIMILSON SANTANA NOGUEIRA (via BO)", "to": "ADIMILSON SANTANA NOGUEIRA"}, {"arrows": "", "color": "black", "from": "00484056/2024", "label": "", "title": "00484056/2024 -\u003e CELIOMAR ALEXANDRE DA SILVA SANTOS (via BO)", "to": "CELIOMAR ALEXANDRE DA SILVA SANTOS"}, {"arrows": "", "color": "black", "from": "00484056/2024", "label": "", "title": "00484056/2024 -\u003e MERCIO ADRIANO FERREIRA FREITAS FILHO (via BO)", "to": "MERCIO ADRIANO FERREIRA FREITAS FILHO"}, {"arrows": "", "color": "black", "from": "00484056/2024", "label": "", "title": "00484056/2024 -\u003e JORGE ITALO DINIZ DOS SANTOS (via BO)", "to": "JORGE ITALO DINIZ DOS SANTOS"}, {"arrows": "", "color": "r", "from": "RODRIGO DA ROCHA BARBOSA", "label": "MILAE", "title": "PFO -\u003e BO", "to": "00484056/2024"}, {"arrows": "", "color": "r", "from": "RODRIGO DA SILVA OLIVEIRA", "label": "MILAE", "title": "PFO -\u003e BO", "to": "00484056/2024"}, {"arrows": "", "color": "r", "from": "KAYKE DA CONCEICAO CONRADO", "label": "MILAE", "title": "PFO -\u003e BO", "to": "00484056/2024"}, {"arrows": "", "color": "r", "from": "SPARTACO SAUL CONCEICAO DE AVELAR", "label": "MILAE", "title": "PFO -\u003e BO", "to": "00484056/2024"}, {"arrows": "", "color": "black", "from": "00841644/2024", "label": "", "title": "00841644/2024 -\u003e CARLOS ROBERTO DE OLIVEIRA DOS SANTOS (via BO)", "to": "CARLOS ROBERTO DE OLIVEIRA DOS SANTOS"}, {"arrows": "", "color": "black", "from": "00841644/2024", "label": "", "title": "00841644/2024 -\u003e EVANDRO ANTONIO MENDES DA SILVA (via BO)", "to": "EVANDRO ANTONIO MENDES DA SILVA"}, {"arrows": "", "color": "r", "from": "CESAR DO NASCIMENTO", "label": "MILAE", "title": "PFO -\u003e BO", "to": "00841644/2024"}, {"arrows": "", "color": "black", "from": "00377140/2024", "label": "", "title": "00377140/2024 -\u003e ADIMILSON SANTANA NOGUEIRA (via BO)", "to": "ADIMILSON SANTANA NOGUEIRA"}, {"arrows": "", "color": "black", "from": "00377140/2024", "label": "", "title": "00377140/2024 -\u003e CELIOMAR ALEXANDRE DA SILVA SANTOS (via BO)", "to": "CELIOMAR ALEXANDRE DA SILVA SANTOS"}, {"arrows": "", "color": "black", "from": "00377140/2024", "label": "", "title": "00377140/2024 -\u003e JORGE ITALO DINIZ DOS SANTOS (via BO)", "to": "JORGE ITALO DINIZ DOS SANTOS"}, {"arrows": "", "color": "r", "from": "MIKE DOUGLAS NASCIMENTO SILVA", "label": "MILAE", "title": "PFO -\u003e BO", "to": "00377140/2024"}, {"arrows": "", "color": "black", "from": "00048829/2024", "label": "", "title": "00048829/2024 -\u003e PABLO DA CRUZ S\u00c1 (via BO)", "to": "PABLO DA CRUZ S\u00c1"}, {"arrows": "", "color": "black", "from": "00048829/2024", "label": "", "title": "00048829/2024 -\u003e WILLIAM OLIVEIRA NASCIMENTO (via BO)", "to": "WILLIAM OLIVEIRA NASCIMENTO"}, {"arrows": "", "color": "r", "from": "HUMBERTO SANTOS SANTANA JUNIOR", "label": "MILAE", "title": "PFO -\u003e BO", "to": "00048829/2024"}, {"arrows": "", "color": "black", "from": "00787499/2024", "label": "", "title": "00787499/2024 -\u003e CARLOS ROBERTO DE OLIVEIRA DOS SANTOS (via BO)", "to": "CARLOS ROBERTO DE OLIVEIRA DOS SANTOS"}, {"arrows": "", "color": "black", "from": "00787499/2024", "label": "", "title": "00787499/2024 -\u003e EVANDRO ANTONIO MENDES DA SILVA (via BO)", "to": "EVANDRO ANTONIO MENDES DA SILVA"}, {"arrows": "", "color": "black", "from": "00787499/2024", "label": "", "title": "00787499/2024 -\u003e MARCOS SOUSA DE SANTANA (via BO)", "to": "MARCOS SOUSA DE SANTANA"}, {"arrows": "", "color": "r", "from": "CHRISTIAN SANTOS NOVAIS DA SILVA", "label": "MILAE", "title": "PFO -\u003e BO", "to": "00787499/2024"}, {"arrows": "", "color": "black", "from": "00685039/2024", "label": "", "title": "00685039/2024 -\u003e CARLOS ROBERTO DE OLIVEIRA DOS SANTOS (via BO)", "to": "CARLOS ROBERTO DE OLIVEIRA DOS SANTOS"}, {"arrows": "", "color": "black", "from": "00685039/2024", "label": "", "title": "00685039/2024 -\u003e EVANDRO ANTONIO MENDES DA SILVA (via BO)", "to": "EVANDRO ANTONIO MENDES DA SILVA"}, {"arrows": "", "color": "r", "from": "FILIPE DA SILVA", "label": "MILAE", "title": "PFO -\u003e BO", "to": "00685039/2024"}, {"arrows": "", "color": "black", "from": "00086643/2024", "label": "", "title": "00086643/2024 -\u003e ALEXANDRE HAHMANN (via BO)", "to": "ALEXANDRE HAHMANN"}, {"arrows": "", "color": "black", "from": "00086643/2024", "label": "", "title": "00086643/2024 -\u003e GILBERTO PEREIRA JUNIOR (via BO)", "to": "GILBERTO PEREIRA JUNIOR"}, {"arrows": "", "color": "r", "from": "VICTOR BORGES FETAL", "label": "MILAE", "title": "PFO -\u003e BO", "to": "00086643/2024"}, {"arrows": "", "color": "black", "from": "00366253/2025", "label": "", "title": "00366253/2025 -\u003e DJALMA MARCOS SANTANA ALMEIDA (via BO)", "to": "DJALMA MARCOS SANTANA ALMEIDA"}, {"arrows": "", "color": "black", "from": "00366253/2025", "label": "", "title": "00366253/2025 -\u003e IGOR HEITOR SANTOS DOS SANTOS (via BO)", "to": "IGOR HEITOR SANTOS DOS SANTOS"}, {"arrows": "", "color": "black", "from": "00366253/2025", "label": "", "title": "00366253/2025 -\u003e LUIS FELIPE VITORINO DE SOUZA (via BO)", "to": "LUIS FELIPE VITORINO DE SOUZA"}, {"arrows": "", "color": "black", "from": "00366253/2025", "label": "", "title": "00366253/2025 -\u003e RUAN LOPES DE ARAUJO REIS (via BO)", "to": "RUAN LOPES DE ARAUJO REIS"}, {"arrows": "", "color": "r", "from": "CARLOS MAGNO PEREIRA RAMOS", "label": "MILAE", "title": "PFO -\u003e BO", "to": "00366253/2025"}, {"arrows": "", "color": "r", "from": "MARCOS PAULO MOTA CRUZ", "label": "MILAE", "title": "PFO -\u003e BO", "to": "00366253/2025"}, {"arrows": "", "color": "black", "from": "00617309/2024", "label": "", "title": "00617309/2024 -\u003e EVERTON LUIZ SANTOS MOTA (via BO)", "to": "EVERTON LUIZ SANTOS MOTA"}, {"arrows": "", "color": "black", "from": "00617309/2024", "label": "", "title": "00617309/2024 -\u003e RAMON HENRIQUE DE LIMA SANTOS (via BO)", "to": "RAMON HENRIQUE DE LIMA SANTOS"}, {"arrows": "", "color": "black", "from": "00617309/2024", "label": "", "title": "00617309/2024 -\u003e TIAGO SILVA DE SANTANA (via BO)", "to": "TIAGO SILVA DE SANTANA"}, {"arrows": "", "color": "r", "from": "ROBERT ANDERSON PEREIRA DO SANTOS", "label": "MILAE", "title": "PFO -\u003e BO", "to": "00617309/2024"}, {"arrows": "", "color": "r", "from": "ESDRAS MARIANO DE ARAUJO", "label": "MILAE", "title": "PFO -\u003e BO", "to": "00617309/2024"}, {"arrows": "", "color": "black", "from": "00193027/2025", "label": "", "title": "00193027/2025 -\u003e CARLOS EDUARDO LOPES FRANCA (via BO)", "to": "CARLOS EDUARDO LOPES FRANCA"}, {"arrows": "", "color": "black", "from": "00193027/2025", "label": "", "title": "00193027/2025 -\u003e MATHEUS RIBEIRO PINTO (via BO)", "to": "MATHEUS RIBEIRO PINTO"}, {"arrows": "", "color": "r", "from": "CARLOS IAN DACE DE PAULA", "label": "MILAE", "title": "PFO -\u003e BO", "to": "00193027/2025"}, {"arrows": "", "color": "black", "from": "00529485/2025", "label": "", "title": "00529485/2025 -\u003e CARLOS EDUARDO LOPES FRANCA (via BO)", "to": "CARLOS EDUARDO LOPES FRANCA"}, {"arrows": "", "color": "black", "from": "00529485/2025", "label": "", "title": "00529485/2025 -\u003e CARLOS ROBERTO DE OLIVEIRA DOS SANTOS (via BO)", "to": "CARLOS ROBERTO DE OLIVEIRA DOS SANTOS"}, {"arrows": "", "color": "r", "from": "ALESANDRO JORGE FRANCA NOGUEIRA FILHO", "label": "MILAE", "title": "PFO -\u003e BO", "to": "00529485/2025"}, {"arrows": "", "color": "black", "from": "00186045/2024", "label": "", "title": "00186045/2024 -\u003e EVERTON LUIZ SANTOS MOTA (via BO)", "to": "EVERTON LUIZ SANTOS MOTA"}, {"arrows": "", "color": "black", "from": "00186045/2024", "label": "", "title": "00186045/2024 -\u003e JONATAS VINICIUS ROCHA BARRETO (via BO)", "to": "JONATAS VINICIUS ROCHA BARRETO"}, {"arrows": "", "color": "black", "from": "00186045/2024", "label": "", "title": "00186045/2024 -\u003e LUIS FELIPE VITORINO DE SOUZA (via BO)", "to": "LUIS FELIPE VITORINO DE SOUZA"}, {"arrows": "", "color": "black", "from": "00715002/2024", "label": "", "title": "00715002/2024 -\u003e CELIOMAR ALEXANDRE DA SILVA SANTOS (via BO)", "to": "CELIOMAR ALEXANDRE DA SILVA SANTOS"}, {"arrows": "", "color": "black", "from": "00715002/2024", "label": "", "title": "00715002/2024 -\u003e GILBERTO PEREIRA JUNIOR (via BO)", "to": "GILBERTO PEREIRA JUNIOR"}, {"arrows": "", "color": "black", "from": "00715002/2024", "label": "", "title": "00715002/2024 -\u003e WILLIAM OLIVEIRA NASCIMENTO (via BO)", "to": "WILLIAM OLIVEIRA NASCIMENTO"}, {"arrows": "", "color": "r", "from": "ADSON EMANOEL DA SILVA DOS SANTOS", "label": "MILAE", "title": "PFO -\u003e BO", "to": "00715002/2024"}, {"arrows": "", "color": "r", "from": "REINALDI MENEZES BRITO", "label": "MILAE", "title": "PFO -\u003e BO", "to": "00715002/2024"}, {"arrows": "", "color": "r", "from": "ITALO ANDRE DOS SANTOS TEIXEIRA", "label": "MILAE", "title": "PFO -\u003e BO", "to": "00715002/2024"}, {"arrows": "", "color": "black", "from": "00259511/2025", "label": "", "title": "00259511/2025 -\u003e CARLOS MAURICIO NETO (via BO)", "to": "CARLOS MAURICIO NETO"}, {"arrows": "", "color": "black", "from": "00259511/2025", "label": "", "title": "00259511/2025 -\u003e RICARDO SILVA DOS REIS (via BO)", "to": "RICARDO SILVA DOS REIS"}, {"arrows": "", "color": "r", "from": "THIAGO DA CONCEICAO RIBEIRO", "label": "MILAE", "title": "PFO -\u003e BO", "to": "00259511/2025"}, {"arrows": "", "color": "black", "from": "00435009/2024", "label": "", "title": "00435009/2024 -\u003e GILBERTO PEREIRA JUNIOR (via BO)", "to": "GILBERTO PEREIRA JUNIOR"}, {"arrows": "", "color": "r", "from": "MARCOS ANDRE OLIVEIRA DOS PASSOS", "label": "MILAE", "title": "PFO -\u003e BO", "to": "00435009/2024"}, {"arrows": "", "color": "black", "from": "00283812/2025", "label": "", "title": "00283812/2025 -\u003e ALEXANDRE HAHMANN (via BO)", "to": "ALEXANDRE HAHMANN"}, {"arrows": "", "color": "black", "from": "00283812/2025", "label": "", "title": "00283812/2025 -\u003e CELIOMAR ALEXANDRE DA SILVA SANTOS (via BO)", "to": "CELIOMAR ALEXANDRE DA SILVA SANTOS"}, {"arrows": "", "color": "black", "from": "00283812/2025", "label": "", "title": "00283812/2025 -\u003e RICARDO SILVA DOS REIS (via BO)", "to": "RICARDO SILVA DOS REIS"}, {"arrows": "", "color": "r", "from": "DANIEL GOMES LUCAS", "label": "MILAE", "title": "PFO -\u003e BO", "to": "00283812/2025"}, {"arrows": "", "color": "black", "from": "00535061/2025", "label": "", "title": "00535061/2025 -\u003e CELIOMAR ALEXANDRE DA SILVA SANTOS (via BO)", "to": "CELIOMAR ALEXANDRE DA SILVA SANTOS"}, {"arrows": "", "color": "black", "from": "00535061/2025", "label": "", "title": "00535061/2025 -\u003e MACLAN MUNIZ MOREIRA (via BO)", "to": "MACLAN MUNIZ MOREIRA"}, {"arrows": "", "color": "r", "from": "EDUARDO SILVA SANTOS FERREIRA", "label": "MILAE", "title": "PFO -\u003e BO", "to": "00535061/2025"}]);
+
+                          // Troque os arquivos abaixo pelos nomes reais se forem diferentes
+        const imageByColor = {
+          red: "imagens/policia.png", // vermelho → imagem X
+          blue: "imagens/bo.png", // azul → imagem Y
+          black: "imagens/pessoa.png", // preto → imagem F
+          orange: "imagens/policia3.png", // laranja (nome) → imagem T (caso use "orange")
+        };
+
+        // Atualiza cada nó para usar shape:image + imagem correspondente
+        nodes.getIds().forEach(function (id) {
+          const item = nodes.get(id);
+          // normaliza a cor para comparar de forma estável
+          const raw = (item.color || "").toString().trim();
+          const keyLower = raw.toLowerCase();
+
+          // tenta bater primeiro pelo valor original (ex.: "orange"), depois lower
+          const img = imageByColor[raw] ?? imageByColor[keyLower] ?? null;
+
+          if (img) {
+            nodes.update({ id, shape: "image", image: img });
+          }
+        });
+                  nodeColors = {};
+                  allNodes = nodes.get({ returnType: "Object" });
+                  for (nodeId in allNodes) {
+                    nodeColors[nodeId] = allNodes[nodeId].color;
+                  }
+                  allEdges = edges.get({ returnType: "Object" });
+                  // adding nodes and edges to the graph
+                  data = {nodes: nodes, edges: edges};
+
+                  var options = {
+    "configure": {
+        "enabled": false,
+        "filter": true
+    },
+    "edges": {
+        "color": {
+            "inherit": true
+        },
+        "smooth": {
+            "enabled": true,
+            "type": "dynamic"
+        }
+    },
+    "interaction": {
+        "dragNodes": true,
+        "hideEdgesOnDrag": false,
+        "hideNodesOnDrag": false
+    },
+    "physics": {
+        "enabled": true,
+        "forceAtlas2Based": {
+            "avoidOverlap": 1,
+            "centralGravity": 0.01,
+            "damping": 0.4,
+            "gravitationalConstant": -32,
+            "springConstant": 0.08,
+            "springLength": 100
+        },
+        "solver": "forceAtlas2Based",
+        "stabilization": {
+            "enabled": true,
+            "fit": true,
+            "iterations": 1000,
+            "onlyDynamicEdges": false,
+            "updateInterval": 50
+        }
+    }
+};
+
+                  
+
+
+                  
+                  // if this network requires displaying the configure window,
+                  // put it in its div
+                  options.configure["container"] = document.getElementById("config");
+                  
+
+                  network = new vis.Network(container, data, options);
+
+                  
+
+                  
+
+                  
+
+
+                  
+
+                  return network;
+
+              }
+              drawGraph();
+        </script>
+    </body>
+</html>

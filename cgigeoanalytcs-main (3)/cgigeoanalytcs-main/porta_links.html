@@ -1,0 +1,256 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Portal de Dashboards Power BI</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="">
+    <script src="https://unpkg.com/lucide-react@latest/dist/umd/lucide.js"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                    },
+                }
+            }
+        }
+    </script>
+</head>
+<body class="bg-gray-50 font-sans">
+
+    <!-- Container Principal -->
+    <div class="container mx-auto p-4 md:p-8">
+
+        <!-- Cabeçalho -->
+        <header class="text-center mb-10">
+            <h1 class="text-4xl font-bold text-gray-800">Portal de Acesso</h1>
+            <p class="text-md text-gray-500 mt-2">Acesso rápido e centralizado aos dashboards e ferramentas da equipe.</p>
+        </header>
+
+        <!-- Grade de Dashboards -->
+        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8">
+
+            <!-- Cartão de Dashboard: WebGIS -->
+            <div class="bg-white p-6 rounded-xl shadow-md border border-gray-200 flex flex-col">
+                <h2 class="text-2xl font-bold text-gray-700 flex items-center mb-4">
+                    <i data-lucide="map" class="mr-3 text-orange-500"></i> WebGIS
+                </h2>
+                <p class="text-sm text-gray-600 mb-6 flex-grow">
+                    Acesse o mapa interativo da equipe para visualização e análise de dados geoespaciais.
+                </p>
+                <div class="mt-auto">
+                    <a href="index.html" target="_blank" class="block text-center w-full bg-orange-500 hover:bg-orange-600 text-white font-bold py-2 px-4 rounded-lg transition-transform hover:scale-105">🗺️ Acessar Mapa</a>
+                </div>
+            </div>
+
+            <!-- Cartão de Relatorio -->
+            <div class="bg-white p-6 rounded-xl shadow-md border border-gray-200 flex flex-col">
+                <h2 class="text-2xl font-bold text-gray-700 flex items-center mb-4">
+                    <i data-lucide="map" class="mr-3 text-orange-500"></i> Relatorio
+                </h2>
+                <p class="text-sm text-gray-600 mb-6 flex-grow">
+                    Consulte o relatório do WebGIS para obter uma visão aprofundada dos dados geoespaciais.
+                </p>
+                <div class="mt-auto">
+                    <a href="relatorio.html" target="_blank" class="block text-center w-full bg-orange-500 hover:bg-orange-600 text-white font-bold py-2 px-4 rounded-lg transition-transform hover:scale-105">🗺️ Acessar Relatorio</a>
+                </div>
+            </div>
+
+
+            <!-- Cartão Diagrama de redes -->
+            <div class="bg-white p-6 rounded-xl shadow-md border border-gray-200 flex flex-col">
+                <h2 class="text-2xl font-bold text-gray-700 flex items-center mb-4">
+                    <i data-lucide="layout-dashboard" class="mr-3 text-blue-500"></i> Diagrama de Redes
+                </h2>
+                 <p class="text-sm text-gray-600 mb-6 flex-grow">
+                    Diagrama de conexões entre os cinco agentes mais ativos em ocorrências de MILAE por Lotação.
+                 </p>
+                <div class="space-y-3 mt-auto">
+                    <a href="diagrama.html" target="_blank" class="block text-center w-full bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 px-4 rounded-lg transition-transform hover:scale-105">🚨 CIPE/L NORTE</a>
+                    <a href="diagrama2.html" target="_blank" class="block text-center w-full bg-green-500 hover:bg-green-600 text-white font-bold py-2 px-4 rounded-lg transition-transform hover:scale-105">🚨 CAMAÇARI</a>
+                </div>
+                 <div class="mt-4">
+                    <div class="instructions hidden mt-2 text-sm text-gray-600 bg-gray-100 p-3 rounded-lg">
+                    </div>
+                </div>
+            </div>    
+
+
+            <!--Cartão de Dashboard: BI SI-->
+            <div class="bg-white p-6 rounded-xl shadow-md border border-gray-200 flex flex-col">
+                <h2 class="text-2xl font-bold text-gray-700 flex items-center mb-4">
+                    <i data-lucide="book-copy" class="mr-3 text-purple-500"></i> BI SI
+                </h2>
+                <div class="space-y-3 mb-4 text-sm text-gray-600">
+                    <p><strong>🔐 Login:</strong> si</p>
+                    <p><strong>🔑 Senha:</strong> 4030</p>
+                </div>
+                <div class="flex items-center space-x-2 mb-6">
+                    <button onclick="copyToClipboard('si', this)" class="w-full bg-gray-100 hover:bg-gray-200 text-gray-700 text-sm font-medium py-2 px-4 rounded-lg transition-colors">Copiar Login</button>
+                    <button onclick="copyToClipboard('4030', this)" class="w-full bg-gray-100 hover:bg-gray-200 text-gray-700 text-sm font-medium py-2 px-4 rounded-lg transition-colors">Copiar Senha</button>
+                </div>
+                <div class="mt-auto">
+                     <a href="https://app.powerbi.com/view?r=eyJrIjoiMjY4MDRiNDAtMDNhNy00YWE4LWEzNDgtOTcwZWU0NzRiM2IxIiwidCI6IjRjZDgzNWY0LTU0NDAtNDA4Zi05M2EzLTk3NWZjMTdjMzg0YSIsImMiOjR9" target="_blank" class="block text-center w-full bg-purple-500 hover:bg-purple-600 text-white font-bold py-2 px-4 rounded-lg transition-transform hover:scale-105">📚 Acessar BI SI</a>
+                </div>
+                 <div class="mt-4">
+                    <button onclick="toggleInstructions(this)" class="text-sm text-purple-600 hover:underline">Mostrar Instruções ▼</button>
+                    <div class="instructions hidden mt-2 text-sm text-gray-600 bg-gray-100 p-3 rounded-lg">
+                        <ol class="list-decimal list-inside space-y-1">
+                            <li>Digite o login fornecido e pressione Enter.</li>
+                            <li>Em seguida, digite a senha e pressione Enter.</li>
+                            <li>Após isso, clique em Login para acessar as informações.</li>
+                        </ol>
+                    </div>
+                </div>
+            </div>
+
+
+
+
+            <!-- Cartão de Dashboard: BI CORREPOL -->
+            <div class="bg-white p-6 rounded-xl shadow-md border border-gray-200 flex flex-col">
+                <h2 class="text-2xl font-bold text-gray-700 flex items-center mb-4">
+                    <i data-lucide="book-copy" class="mr-3 text-purple-500"></i> BI CORREPOL
+                </h2>
+                <div class="space-y-3 mb-4 text-sm text-gray-600">
+                    <p><strong>🔐 Login:</strong> correpol</p>
+                    <p><strong>🔑 Senha:</strong> 3040</p>
+                </div>
+                <div class="flex items-center space-x-2 mb-6">
+                    <button onclick="copyToClipboard('correpol', this)" class="w-full bg-gray-100 hover:bg-gray-200 text-gray-700 text-sm font-medium py-2 px-4 rounded-lg transition-colors">Copiar Login</button>
+                    <button onclick="copyToClipboard('3040', this)" class="w-full bg-gray-100 hover:bg-gray-200 text-gray-700 text-sm font-medium py-2 px-4 rounded-lg transition-colors">Copiar Senha</button>
+                </div>
+                <div class="mt-auto">
+                     <a href="https://app.powerbi.com/view?r=eyJrIjoiYTU1YmFmZWYtZjUyOS00ZmU1LWEzMjYtZjcxMzM1ZDNiN2YwIiwidCI6IjRjZDgzNWY0LTU0NDAtNDA4Zi05M2EzLTk3NWZjMTdjMzg0YSIsImMiOjR9" target="_blank" class="block text-center w-full bg-purple-500 hover:bg-purple-600 text-white font-bold py-2 px-4 rounded-lg transition-transform hover:scale-105">📚 Acessar BI CORREPOL</a>
+                </div>
+                 <div class="mt-4">
+                    <button onclick="toggleInstructions(this)" class="text-sm text-purple-600 hover:underline">Mostrar Instruções ▼</button>
+                    <div class="instructions hidden mt-2 text-sm text-gray-600 bg-gray-100 p-3 rounded-lg">
+                        <ol class="list-decimal list-inside space-y-1">
+                            <li>Digite o login fornecido e pressione Enter.</li>
+                            <li>Em seguida, digite a senha e pressione Enter.</li>
+                            <li>Após isso, clique em Login para acessar as informações.</li>
+                        </ol>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Cartão de Dashboard: BI MP -->
+            <div class="bg-white p-6 rounded-xl shadow-md border border-gray-200 flex flex-col">
+                <h2 class="text-2xl font-bold text-gray-700 flex items-center mb-4">
+                    <i data-lucide="scale" class="mr-3 text-green-500"></i> BI MP
+                </h2>
+                <div class="space-y-3 mb-4 text-sm text-gray-600">
+                    <p><strong>🔐 Login:</strong> mp</p>
+                    <p><strong>🔑 Senha:</strong> 2030</p>
+                </div>
+                <div class="flex items-center space-x-2 mb-6">
+                    <button onclick="copyToClipboard('mp', this)" class="w-full bg-gray-100 hover:bg-gray-200 text-gray-700 text-sm font-medium py-2 px-4 rounded-lg transition-colors">Copiar Login</button>
+                    <button onclick="copyToClipboard('2030', this)" class="w-full bg-gray-100 hover:bg-gray-200 text-gray-700 text-sm font-medium py-2 px-4 rounded-lg transition-colors">Copiar Senha</button>
+                </div>
+                <div class="mt-auto">
+                    <a href="https://app.powerbi.com/view?r=eyJrIjoiM2JmNWUxNTktYzE3MS00NjI5LWE0ZGQtMzExYjA5YzQ1ZGE3IiwidCI6IjRjZDgzNWY0LTU0NDAtNDA4Zi05M2EzLTk3NWZjMTdjMzg0YSIsImMiOjR9" target="_blank" class="block text-center w-full bg-green-500 hover:bg-green-600 text-white font-bold py-2 px-4 rounded-lg transition-transform hover:scale-105">⚖️ Acessar BI MP</a>
+                </div>
+                 <div class="mt-4">
+                    <button onclick="toggleInstructions(this)" class="text-sm text-green-600 hover:underline">Mostrar Instruções ▼</button>
+                    <div class="instructions hidden mt-2 text-sm text-gray-600 bg-gray-100 p-3 rounded-lg">
+                        <ol class="list-decimal list-inside space-y-1">
+                            <li>Digite o login fornecido e pressione Enter.</li>
+                            <li>Em seguida, digite a senha e pressione Enter.</li>
+                            <li>Após isso, clique em Login para acessar as informações.</li>
+                        </ol>
+                    </div>
+                </div>
+            </div>
+
+
+
+                    <!-- Cartão de Dashboard: Geral -->
+            <div class="bg-white p-6 rounded-xl shadow-md border border-gray-200 flex flex-col">
+                <h2 class="text-2xl font-bold text-gray-700 flex items-center mb-4">
+                    <i data-lucide="layout-dashboard" class="mr-3 text-blue-500"></i> Dashboards Gerais
+                </h2>
+
+                <div class="space-y-3 mt-auto">
+                    <a href="https://app.powerbi.com/view?r=eyJrIjoiMjJlYTVhMWItOTE2Ni00NzRkLTlmODEtM2Y2YTI5MTc4YTkzIiwidCI6IjRjZDgzNWY0LTU0NDAtNDA4Zi05M2EzLTk3NWZjMTdjMzg0YSIsImMiOjR9" target="_blank" class="block text-center w-full bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 px-4 rounded-lg transition-transform hover:scale-105">🔧 FORCE</a>
+                    <a href="https://app.powerbi.com/view?r=eyJrIjoiNDVkMWMwOTEtZTI5OC00NGU5LTg4YmEtMzM1ZDcyOTU4MGI2IiwidCI6IjRjZDgzNWY0LTU0NDAtNDA4Zi05M2EzLTk3NWZjMTdjMzg0YSIsImMiOjR9" target="_blank" class="block text-center w-full bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 px-4 rounded-lg transition-transform hover:scale-105">🕵️ INVESTIGAÇÃO</a>
+                    <a href="https://app.powerbi.com/view?r=eyJrIjoiMzQxYWI2NTQtNzViNS00MWRmLTgwZGItNDI4YzFmZDhiNzMxIiwidCI6IjRjZDgzNWY0LTU0NDAtNDA4Zi05M2EzLTk3NWZjMTdjMzg0YSIsImMiOjR9" target="_blank" class="block text-center w-full bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 px-4 rounded-lg transition-transform hover:scale-105">🚨 CONFRONTO</a>
+                    <a href="https://app.powerbi.com/view?r=eyJrIjoiMTY1ZmRhNGEtZmM3Mi00NGZiLTkyMGEtZmVkOTRlODk4ODQ5IiwidCI6IjRjZDgzNWY0LTU0NDAtNDA4Zi05M2EzLTk3NWZjMTdjMzg0YSIsImMiOjR9" target="_blank" class="block text-center w-full bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 px-4 rounded-lg transition-transform hover:scale-105">📈 BI GERAL</a>
+                </div>
+                 <div class="mt-4">
+                    <button onclick="toggleInstructions(this)" class="text-sm text-blue-600 hover:underline">Mostrar Instruções ▼</button>
+                    <div class="instructions hidden mt-2 text-sm text-gray-600 bg-gray-100 p-3 rounded-lg">
+                        <ol class="list-decimal list-inside space-y-1">
+                            <li>Digite o login fornecido e pressione Enter.</li>
+                            <li>Em seguida, digite a senha e pressione Enter.</li>
+                            <li>Após isso, clique em Login para acessar as informações.</li>
+                        </ol>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Elemento para feedback de "copiado" -->
+    <div id="copied-feedback" class="copied-feedback"></div>
+
+    <script>
+        // Renderiza os ícones do Lucide
+        lucide.createIcons();
+
+        // Função para alternar a visibilidade das instruções
+        function toggleInstructions(button) {
+            const instructionsDiv = button.nextElementSibling;
+            const isHidden = instructionsDiv.classList.contains('hidden');
+            if (isHidden) {
+                instructionsDiv.classList.remove('hidden');
+                button.innerHTML = 'Ocultar Instruções ▲';
+            } else {
+                instructionsDiv.classList.add('hidden');
+                button.innerHTML = 'Mostrar Instruções ▼';
+            }
+        }
+
+        function copyToClipboard(text, button) {
+
+            const tempInput = document.createElement('input');
+            tempInput.style.position = 'absolute';
+            tempInput.style.left = '-9999px';
+            tempInput.value = text;
+            document.body.appendChild(tempInput);
+            tempInput.select();
+            try {
+                // Tenta usar a API moderna, se falhar, usa o método legado
+                navigator.clipboard.writeText(text).then(() => {
+                    showCopiedFeedback();
+                }).catch(err => {
+                    console.warn('Falha ao usar a API de área de transferência, tentando método legado.');
+                    document.execCommand('copy');
+                    showCopiedFeedback();
+                });
+            } catch (err) {
+                 console.warn('API de área de transferência não suportada, tentando método legado.');
+                 document.execCommand('copy');
+                 showCopiedFeedback();
+            }
+            document.body.removeChild(tempInput);
+        }
+
+        function showCopiedFeedback() {
+            const feedbackEl = document.getElementById('copied-feedback');
+            feedbackEl.classList.add('show');
+            setTimeout(() => {
+                feedbackEl.classList.remove('show');
+            }, 2000); // O feedback desaparece após 2 segundos
+        }
+    </script>
+
+</body>
+</html>
+
