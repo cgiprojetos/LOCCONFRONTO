@@ -12975,6 +12975,7 @@ export const COM_OBITO = [
     n_ocorrencia: "00000139/2025",
     bairro: "2023 - NAO INFORMADO - 17ª COORPIN - REMANSO",
     aisp: "AISP 46-JUAZEIRO",
+    
     tipo_prioridade: "nan",
   },
   {

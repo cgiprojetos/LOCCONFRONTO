@@ -1,5 +1,5 @@
 import { initializeMap } from './map.js';
-import { createBaseLayers, createOverlayLayers } from './layers.js';
+import { createBaseLayers, createOverlayLayers, createAispLayer } from './layers.js';
 import { addLayerControl } from './controls.js';
 import { com_AE, COM_OBITO, SEM_AE, refem, vitimizacao, danos_colaterais } from './dados.js';
 import { initializeChatbot } from './chatbot.js'; 
@@ -24,7 +24,9 @@ if (hamburgerBtn && sidebar) {
     const map = initializeMap('map');
     const baseLayers = createBaseLayers();
     const overlayLayers = createOverlayLayers();
+    
 
+    
     baseLayers["OpenStreetMap"].addTo(map);
 
     Object.values(overlayLayers).forEach(grupo => {
@@ -36,6 +38,11 @@ if (hamburgerBtn && sidebar) {
         });
     });
 
+    // -- AQUI EU ADICIONO AS COORDENADAS DAS AIPS ---
+createAispLayer().then(aispLayer => {
+    overlayLayers["AISP Liberdade"] = aispLayer;
+    aispLayer.addTo(map); // se quiser que comece visível
+});
 
 
     // Pega as referências dos elementos do HTML

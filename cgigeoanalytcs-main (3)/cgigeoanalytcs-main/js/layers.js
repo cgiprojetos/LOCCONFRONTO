@@ -1,6 +1,20 @@
 import { com_AE, COM_OBITO, SEM_AE, refem, vitimizacao, danos_colaterais } from './dados.js';
 
 
+export async function createAispLayer() {
+    const response = await fetch('data/aisp_liberdade.geojson');
+    const data = await response.json();
+
+    return L.geoJSON(data, {
+        style: {
+            color: '#2563eb',      // borda azul
+            weight: 2,
+            fillColor: '#3b82f6',  // azul claro
+            fillOpacity: 0.35
+        }
+    });
+}
+
 export function createBaseLayers() {
     const osm = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
         attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>'
@@ -17,7 +31,7 @@ export function createBaseLayers() {
 }
 
 /**
- 
+
  * @param {Array} listaDePontos - A lista de dados (ex: com_AE).
  * @param {Object} estilo - Um objeto com as opções de estilo do círculo (cor, raio, etc.).
  * @returns {L.LayerGroup} Uma camada com todos os círculos.
@@ -51,9 +65,10 @@ function criarGrupoDeCirculos(listaDePontos, estilo) {
     });
     return L.layerGroup(circles);
 }
- 
+
 export function createOverlayLayers() {
 
+    
     // Define um objeto de estilo.
     const estiloComAE = {
         radius: 6,
@@ -123,4 +138,5 @@ export function createOverlayLayers() {
         "VITIMIZACAO POLICIAL": grupoVitimizacao,
         "DANOS COLATERIAS": grupoDanos
     };
+    
 }
