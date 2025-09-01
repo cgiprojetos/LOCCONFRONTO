@@ -1,0 +1,567 @@
+/* --- LAYOUT PRINCIPAL: 20% lateral esquerda + 80% mapa --- */
+html, body {
+    margin: 0;
+    padding: 20;
+    height: 100%;
+}
+
+.container {
+    display: flex;      /* ativa flexbox */
+    height: 100vh;      /* ocupa a tela toda */
+    width: 100%;
+}
+
+.sidebar {
+    width: 13%;         /* painel lateral */
+    background: #f8f9fa;
+    border-right: 1px solid #ccc;
+    padding: 10px;
+    box-sizing: border-box;
+    overflow-y: auto;
+}
+
+.main-content {
+    width: 90%;         /* mapa ocupa 80% */
+    position: relative;
+}
+
+#map {
+    height: 100%;
+    width: 100%;
+}
+
+/* --- ESTILO DA BARRA DE PESQUISA (TEMA ESCURO) --- */
+/* Barra de pesquisa fixa no topo da página */
+
+
+
+.leaflet-control-geocoder.leaflet-bar {
+    position: fixed !important;
+    top: 20px;
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: 5000;
+    display: flex !important;
+    flex-direction: row; /* garante que resultados fiquem embaixo */
+    background-color: #2c3e50;
+    padding: 5px 10px;
+    border-radius: 8px;
+    box-shadow: 0 2px 10px rgba(0,0,0,0.3);
+}
+
+/* Mantemos a lupa visível, sem mudanças */
+
+/* Input da barra */
+.leaflet-control-geocoder-form {
+    display: block !important;
+    width: 100%;
+}
+
+/* Input de busca */
+.leaflet-control-geocoder-form input {
+    width: 400px;
+    height: 36px;
+    padding: 0 10px;
+    border-radius: 6px;
+    border: none;
+    outline: none;
+    font-size: 14px;
+    background-color: #34495e;
+    color: white;
+}
+
+/* Placeholder */
+.leaflet-control-geocoder-form input::placeholder {
+    color: #fdfcfc;
+}
+
+/* Lista de resultados */
+.leaflet-control-geocoder-alternatives {
+    position: absolute;   /* relativo à barra */
+    top: 100%;            /* logo abaixo do input */
+    left: 0;
+    width: 100%;          /* mesma largura da barra */
+    background: #2c3e50;
+    border-radius: 0 0 6px 6px;
+    margin-top: 5px;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.3);
+    z-index: 6000;
+}
+
+/* Itens da lista */
+.leaflet-control-geocoder-alternatives a {
+    display: block;
+    padding: 8px 12px;
+    color: rgb(0, 0, 0);
+    font-weight: 800;
+    text-decoration: none;
+}
+
+.leaflet-control-geocoder-alternatives a:hover {
+    background: #1abc9c;
+}
+
+
+/* FIM DA BARRA DA PESQUISA*/
+
+
+.leaflet-control-geocoder-alternatives a:focus {
+    background-color: #425c77;
+    color: #fff;
+    outline: none;
+}
+/* Remove a borda do último item da lista. */
+.leaflet-control-geocoder-alternatives li:last-child a {
+    border-bottom: none;
+}
+
+/* --- ESTILO DO CONTROLE DE CAMADAS (TEMA CLARO E MODERNO) --- */
+/* Estiliza o ícone do controle de camadas quando ele está fechado. */
+
+.leaflet-control-layers-toggle {
+    width: 36px;
+    height: 36px;
+    background-image: url('data:image/svg+xml;charset=utf-8,<svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="%23333" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/></svg>');
+    background-position: center;
+    background-repeat: no-repeat;
+    background-size: 20px 20px;
+    border-radius: 5px;
+    border: 1px solid rgba(0,0,0,0.1);
+    box-shadow: 0 1px 5px rgba(0,0,0,0.2);
+}
+
+/* Estiliza o painel quando ele está aberto (expandido). */
+.leaflet-control-layers.leaflet-control-layers-expanded {
+    background: rgba(255, 255, 255, 0.85); /* Fundo branco semitransparente */
+    backdrop-filter: blur(8px); /* Efeito de vidro fosco */
+    -webkit-backdrop-filter: blur(8px);
+    border: 1px solid rgba(255, 255, 255, 0.4);
+    border-radius: 8px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+    padding: 12px;
+    color: #333;
+}
+
+/* Esconde a linha que separa as camadas base das de sobreposição. */
+.leaflet-control-layers-separator {
+    display: none;
+}
+
+/* Estilo geral para cada linha de opção de camada. */
+.leaflet-control-layers-base label,
+.leaflet-control-layers-overlays label {
+    display: block;
+    padding: 5px;
+    font-size: 14px;
+    cursor: pointer;
+    transition: background-color 0.2s ease;
+    border-radius: 4px;
+}
+
+/* Efeito de destaque ao passar o mouse sobre uma opção de camada. */
+.leaflet-control-layers-base label:hover,
+.leaflet-control-layers-overlays label:hover {
+    background-color: rgba(0,0,0,0.05);
+}
+
+/* --- CUSTOMIZAÇÃO DE CHECKBOX E RÁDIO --- */
+/* Esconde o checkbox e o botão de rádio padrão do navegador. */
+.leaflet-control-layers-selector {
+    display: none !important;
+}
+
+/* Alinha o texto da camada com a nova "caixinha" que vamos criar. */
+.leaflet-control-layers-selector + span {
+    display: inline-flex;
+    align-items: center;
+}
+
+/* Cria a "caixinha" customizada (o quadrado ou o círculo). */
+.leaflet-control-layers-selector + span::before {
+    content: '';
+    display: inline-block;
+    width: 16px;
+    height: 16px;
+    margin-right: 10px;
+    border: 2px solid #aaa;
+    background-color: #fff;
+    transition: all 0.2s ease;
+}
+
+/* Deixa a "caixinha" das camadas base (rádio) redonda. */
+.leaflet-control-layers-base .leaflet-control-layers-selector + span::before {
+    border-radius: 50%;
+}
+
+/* Deixa a "caixinha" das camadas de sobreposição (checkbox) quadrada. */
+.leaflet-control-layers-overlays .leaflet-control-layers-selector + span::before {
+    border-radius: 3px;
+}
+
+/* Estilo da "caixinha" quando a camada está selecionada (marcada). */
+.leaflet-control-layers-selector:checked + span::before {
+    border-color: #007bff;
+    background-color: #007bff;
+    box-shadow: inset 0 0 0 3px white; /* Cria o ponto central para o rádio */
+}
+
+/* Estilo específico para o checkbox quando está marcado. */
+.leaflet-control-layers-overlays .leaflet-control-layers-selector:checked + span::before {
+    box-shadow: none; /* Remove o ponto central */
+    /* Adiciona um ícone de "check" usando SVG */
+    background-image: url('data:image/svg+xml;charset=utf-8,<svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><path d="M20 6L9 17l-5-5"/></svg>');
+    background-position: center;
+    background-repeat: no-repeat;
+}
+
+/* --- ESTILO DOS POPUPS DO MAPA --- */
+/* Estiliza a caixa principal do popup (a que tem a "setinha"). */
+.leaflet-popup-content-wrapper {
+    background: #ffffff;
+    border-radius: 8px;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.15);
+    border: 1px solid #e0e0e0;
+}
+
+/* Estiliza a área de conteúdo dentro do popup. */
+.leaflet-popup-content {
+    margin: 15px 20px;
+    font-family: sans-serif;
+    line-height: 1.6;
+    width: 300px !important;
+    color: #333;
+}
+
+/* Estiliza os rótulos (ex: "Local:", "Data:") dentro do popup. */
+.leaflet-popup-content b {
+    display: block;
+    margin-top: 12px;
+    padding-bottom: 3px;
+    border-bottom: 1px solid #f0f0f0;
+    color: #007bff;
+    font-size: 11px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+/* Remove a margem do topo do primeiro rótulo no popup. */
+.leaflet-popup-content b:first-child {
+    margin-top: 0;
+}
+
+/* Esconde a quebra de linha <br> que vem após os rótulos. */
+.leaflet-popup-content b + br {
+    display: none;
+}
+
+/* Estiliza o botão 'X' de fechar o popup. */
+.leaflet-popup-close-button {
+    padding: 10px 10px 0 0;
+    color: #aaa;
+    font-size: 18px;
+}
+
+.leaflet-popup-close-button:hover {
+    color: #333;
+}
+
+/* Estiliza a "seta" triangular que aponta para o marcador. */
+.leaflet-popup-tip {
+    background: #fff;
+    border: 1px solid #e0e0e0;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.15);
+}
+
+/* --- FEEDBACK VISUAL PARA CÓPIA DE TEXTO --- */
+/* Estiliza uma caixa de notificação que aparece na tela. */
+.copied-feedback {
+    position: fixed;
+    bottom: 20px;
+    left: 50%;
+    transform: translateX(-50%);
+    background-color: #10B981; /* Verde */
+    color: white;
+    padding: 10px 20px;
+    border-radius: 8px;
+    font-size: 14px;
+    z-index: 100;
+    opacity: 0; /* Começa invisível */
+    transition: opacity 0.5s ease-in-out; /* Efeito suave de aparecer/desaparecer */
+}
+
+/* Classe para mostrar a caixa de feedback. */
+.copied-feedback.show {
+    opacity: 1; /* Torna a caixa visível */
+}
+
+/* --- ESTILO DO BOTÃO DE VOLTAR --- */
+.back-button {
+    position: absolute;
+    top: 130px;
+    left: 10px;
+    z-index: 1001; /* Z-index alto para ficar acima de outros controles */
+    background-color: #fff;
+    padding: 8px 12px;
+    color: #333;
+    text-decoration: none;
+    font-family: sans-serif;
+    font-size: 14px;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+    box-shadow: 0 1px 5px rgba(0,0,0,0.2);
+    font-weight: bold;
+}
+
+.back-button:hover {
+    background-color: #f4f4f4;
+}
+
+/* --- ESTILO DA LEGENDA DO MAPA --- */
+
+.info-legend {
+    position: absolute;
+    bottom: 30px; /* Posição no canto inferior */
+    right: 10px;  /* Posição no canto direito */
+    z-index: 1000;
+    padding: 10px 15px;
+    background: white;
+    background: rgba(255, 255, 255, 0.9);
+    box-shadow: 0 0 15px rgba(0,0,0,0.2);
+    border-radius: 5px;
+    font-family: sans-serif;
+    font-size: 14px;
+    line-height: 1.5;
+    color: #333;
+}
+
+.info-legend h4 {
+    margin: 0 0 10px 0;
+    padding-bottom: 5px;
+    border-bottom: 1px solid #ddd;
+    text-align: center;
+}
+
+.legend-item {
+    display: flex;
+    align-items: center;
+    margin-bottom: 5px;
+}
+
+/* Estiliza o ícone de cor (círculo) */
+.legend-item i {
+    width: 18px;
+    height: 18px;
+    border-radius: 50%; /* Deixa o ícone redondo como os pontos do mapa */
+    margin-right: 8px;
+    border: 1px solid rgba(0,0,0,0.2);
+}
+/*----------------------------------------------------------*/
+
+/*------------------------FILTRO PARA CRIAÇÃO DE MENU LATERAL ORGANIZADO DA MELHOR FORMA QUE EU CONSEGUIR KKKKKK----------------------------------*/
+
+/* --- CONFIGURAÇÕES GLOBAIS E VARIÁVEIS --- */
+:root {
+    --primary-color: #3b82f6;
+    --primary-hover: #2563eb;
+    --background-dark: #111827;
+    --background-light: #1f2937;
+    --border-color: #374151;
+    --text-light: #f8f9fa;
+    --text-muted: #ffffff;
+    --success-color: #10b981;
+    --success-hover: #059669;
+}
+
+/* Aplica um box-sizing mais intuitivo a todos os elementos */
+*, *::before, *::after {
+    box-sizing: border-box;
+}
+
+/* --- ESTRUTURA PRINCIPAL DA SIDEBAR --- */
+.sidebar {
+    background-color: var(--background-light);
+    color: var(--text-light);
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    
+    width: 280px; /* Largura padrão para desktop */
+    height: 100vh; /* Ocupa a altura total da tela */
+    
+    display: flex;
+    flex-direction: column;
+    padding: 5px;
+    
+    /* Apenas a sidebar terá barra de rolagem, se necessário */
+    overflow-y: auto;
+    
+    /* Transição suave para o menu responsivo */
+    transition: transform 0.3s ease-in-out;
+}
+
+/* Garante que os filhos diretos ocupem toda a largura da sidebar */
+.sidebar > * {
+    width: 100%;
+    flex-shrink: 0;
+}
+/* --- COMPONENTES DA SIDEBAR --- */
+.sidebar h2 {
+    text-align: center; /* Centraliza o texto horizontalmente */
+    color: var(--text-light); /* Garante que a cor combine com o tema */
+    margin-top: 0;        /* Remove margem superior, se houver */
+    margin-bottom: 20px;  /* Adiciona um espaçamento abaixo do título */
+    font-size: 1.2em;     /* Tamanho de fonte opcional */
+}
+/* --- COMPONENTES DA SIDEBAR --- */
+/* --- COMPONENTES DA SIDEBAR --- */
+
+.user-image {
+    display: flex;            /* Transforma o link em um container flexível */
+    flex-direction: column;   /* Alinha os itens (imagem e texto) em uma coluna */
+    align-items: center;      /* Centraliza os itens horizontalmente */
+    
+    text-align: center;       /* Garante o alinhamento central */
+    margin-bottom: 20px;
+    text-decoration: none;    /* Remove o sublinhado do link */
+    color: var(--text-light); /* Define a cor do texto "OLÁ" */
+    font-weight: 600;         /* Opcional: Deixa a fonte mais forte */
+}
+
+.user-image img {
+    width: 90px;
+    height: 90px;
+    border-radius: 50%;
+    border: 3px solid var(--primary-color);
+    object-fit: cover;
+    margin-bottom: 10px;      /* ADICIONADO: Cria um espaço entre a imagem e o texto */
+}
+
+.sidebar label {
+    display: block;
+    margin-bottom: 5px;
+    font-size: 1.0em;
+    font-weight: 800;
+    color: var(--text-muted);
+}
+
+.sidebar input[type="text"],
+.sidebar input[type="date"] {
+    width: 100%;
+    padding: 10px 12px;
+    margin-bottom: 15px;
+    border-radius: 6px;
+    border: 1px solid var(--border-color);
+    background-color: var(--background-dark);
+    color: var(--text-light);
+    outline: none;
+    transition: border-color 0.2s, box-shadow 0.2s;
+}
+
+.sidebar input[type="text"]:focus,
+.sidebar input[type="date"]:focus {
+    border-color: var(--primary-color);
+    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.3);
+}
+
+/* --- LISTAS DE FILTROS (AISP E PRIORIDADE) --- */
+#priority-list,
+#aisp-list {
+    /* REMOVIDO: max-height e overflow-y para ter uma rolagem única na sidebar */
+    border: 1px solid var(--border-color);
+    border-radius: 6px;
+    padding: 5px;
+    margin-bottom: 10px;
+    background-color: var(--background-dark);
+}
+
+#priority-list .priority-item,
+#aisp-list .aisp-item {
+    padding: 8px 10px;
+    border-radius: 4px;
+    transition: background-color 0.2s;
+}
+
+#priority-list .priority-item:hover,
+#aisp-list .aisp-item:hover {
+    background-color: var(--background-light);
+}
+
+/* Estilo para os labels dentro das listas para melhor alinhamento e quebra de texto */
+#priority-list label,
+#aisp-list label {
+    display: flex;
+    align-items: center;
+    cursor: pointer;
+    color: var(--text-light); /* Garante que o texto do label seja claro */
+    font-weight: normal;
+    
+    /* FIX: Garante que o texto quebre e não crie scroll horizontal */
+    word-wrap: break-word;
+    width: 100%;
+}
+
+#priority-list input[type="checkbox"],
+#aisp-list input[type="checkbox"] {
+    margin-right: 10px; /* Espaçamento entre a checkbox e o texto */
+}
+
+
+/* --- BOTÕES --- */
+#resete-mapa {
+    padding: 12px;
+    background-color: var(--success-color);
+    color: white;
+    border: none;
+    border-radius: 6px;
+    font-weight: 600;
+    cursor: pointer;
+    text-align: center;
+    transition: background-color 0.2s ease;
+}
+
+#resete-mapa:hover {
+    background-color: var(--success-hover);
+}
+
+
+/* --- BOTÃO HAMBURGUER (APENAS PARA MOBILE) --- */
+.hamburger-btn {
+    display: none; /* Escondido por padrão em telas grandes */
+    position: fixed;
+    top: 15px;
+    left: 15px;
+    z-index: 1001; /* Fica acima do mapa, mas abaixo da sidebar aberta */
+    background-color: var(--primary-color);
+    color: white;
+    border: none;
+    font-size: 24px;
+    padding: 10px 12px;
+    border-radius: 8px;
+    cursor: pointer;
+    box-shadow: 0 4px 8px rgba(0,0,0,0.3);
+}
+
+/* --- DESIGN RESPONSIVO PARA TELAS MENORES --- */
+@media (max-width: 768px) {
+    .sidebar {
+        position: fixed;
+        top: 0;
+        left: 0;
+        height: 100%;
+        z-index: 1000;
+        
+        /* Começa fora da tela */
+        transform: translateX(-100%);
+        box-shadow: 3px 0 15px rgba(0,0,0,0.2);
+    }
+    
+    /* Classe para mostrar a sidebar */
+    .sidebar.is-open {
+        transform: translateX(0);
+    }
+    
+    /* Mostra o botão hamburguer */
+    .hamburger-btn {
+        display: block;
+    }
+}
+/*-------------------------------------------FIM DO CSS DO MENU-------------------------------------------------------------------------------------------*/
